@@ -14,8 +14,8 @@ global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat U...
  
 % Domain
 
-Nx = 128;
-Ny = 128;
+Nx = 64;
+Ny = 64;
 
 x_range = [-10 10];
 y_range = [-10 10];
@@ -109,7 +109,7 @@ end
 U = 1;
 V = 0;
 
-Re = 40;
+Re = 200;
 nu = U * R / Re;
 
 Co = 0.1;
