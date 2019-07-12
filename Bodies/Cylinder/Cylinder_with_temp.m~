@@ -10,7 +10,7 @@ addpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source/dst_idst')
 %% Set up the problem domain and the problem object
 
 global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat_n U...
-    X_e_x Y_e_x X_e_y Y_e_y Fo Co
+    X_e_x Y_e_x X_e_y Y_e_y Fo Co X_c Y_c
  
 % Domain
 
@@ -75,7 +75,7 @@ end
 U = 1;
 V = 0;
 
-Re = 40;
+Re = 200;
 nu = U * R / Re;
 
 Co = 0.1;
@@ -113,6 +113,8 @@ for a = 2
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     nl = non_linear_alt(velocity);
+%     nl.x = -nl.x;
+%     nl.y = -nl.y;
     nl = curl_2(nl);
     
     ff = CTH(Fx,Fy);
@@ -138,12 +140,13 @@ for a = 2
     rhs2 = [rhs2_x;rhs2_y];
     % Now obtain the delta_f in the two directions by pcg
     delta_f = pcg(A, rhs2, 1e-1);
-    delta_f = delta_f./dt;
     
     % Now delta_f_star in the X and Y direction are the correct delta_f in the X and Y direction 
     
     delta_f_x = delta_f(1:length(body_map(:,1)));
+    delta_f_x = delta_f_x./dt;
     delta_f_y = delta_f(length(body_map(:,1))+1:end);
+    delta_f_y = delta_f_y./dt;
     
     % Now we correct for the vorticity to ensure we have no slip on the body
     
@@ -160,7 +163,10 @@ for a = 2
     
     % Obtain the streamfunction and velocity
     
-    sf = L_inv_operation(-gamma.x,"node");
+    gamma_hat = fft2(-gamma.x,2*Nx+1,2*Ny+1);
+    sf_hat = gamma_hat .* g_hat_n;
+    sf_hat = ifft2(sf_hat);
+    sf.x = sf_hat(Nx+1:end,Ny+1:end); 
     
     velocity = curl_2(sf);
     velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
@@ -191,11 +197,13 @@ for a = 3:length(t)
     rhs1 = NodeData(Nx,Ny);
     rhs1.x = dt * 0.5 * nl.x;
     nl = non_linear_alt(velocity);
+%     nl.x = -nl.x;
+%     nl.y = -nl.y;
     nl = curl_2(nl);
     
     ff = CTH(Fx,Fy);
     
-    rhs1.x = rhs1.x + Fo * diff_gamma.x - 1.5 * dt * nl.x + dt * ff.x;
+    rhs1.x = Fo * diff_gamma.x - 1.5 * dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -236,7 +244,10 @@ for a = 3:length(t)
     
     % Obtain the streamfunction and velocity
     
-    sf = L_inv_operation(-gamma.x,"node");
+    gamma_hat = fft2(-gamma.x,2*Nx+1,2*Ny+1);
+    sf_hat = gamma_hat .* g_hat_n;
+    sf_hat = ifft2(sf_hat);
+    sf.x = sf_hat(Nx+1:end,Ny+1:end);
     
     velocity = curl_2(sf);
     velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
@@ -263,7 +274,7 @@ xi = [xi;xi(1)];
 eta = body_map(:,2);
 eta = [eta;eta(1)];
 f1 = figure;
-contour(X_n./(2*R),Y_n./(2*R),(sf.x'))
+contour(X_n./(2*R),Y_n./(2*R),(sf.x'),-3:0.4:3)
 hold on
 plot(xi./(2*R),eta./(2*R),"LineWidth",2);
 hold off
@@ -272,24 +283,6 @@ title({'Streamlines for a Flat Plate of D = ',num2str(2*R),' flow is of uniform 
 xlabel("X/D")
 ylabel("Y/D")
 f1.WindowState = 'fullscreen';
-
-%% Vorticity
-
-xi = body_map(:,1);
-xi = [xi;xi(1)];
-eta = body_map(:,2);
-eta = [eta;eta(1)];
-f1 = figure;
-contour(X_n./(2*R),Y_n./(2*R),(gamma.x'))
-hold on
-plot(xi./(2*R),eta./(2*R),"LineWidth",2);
-hold off
-pbaspect([1 1 1])
-title({'Streamlines for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)})
-xlabel("X/D")
-ylabel("Y/D")
-f1.WindowState = 'fullscreen';
-
 
 %% Quiver Plot
 

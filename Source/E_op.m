@@ -1,5 +1,5 @@
 function out = E_op(xi,eta,s,dim)
-    global Nx Ny X_n Y_n x_range y_range dx
+    global Nx Ny X_n Y_n X_e_x Y_e_x X_e_y Y_e_y X_c Y_c
     if s.data == "node"
         if nargin == 3
             for i = 1:Nx+1
@@ -14,12 +14,23 @@ function out = E_op(xi,eta,s,dim)
             out = sum(sum(out));
         end
     elseif s.data == "cell"
+        if nargin == 3
+            for i = 1:Nx+2
+                for j = 1:Ny+2
+                    if s.x(i,j) == 0 || (X_c(i,j)-xi)/dx > 1.5 || (Y_c(i,j)-eta)/dx > 1.5
+                        out(i,j) = 0;
+                    else
+                        out(i,j) = s.x(i,j) * ddf_roma_2D(X_c(i,j)-xi,Y_c(i,j)-eta);
+                    end
+                end
+            end
+            out = sum(sum(out));
+        end
     elseif s.data == "edge"
         if nargin == 4
             if dim == 1
-                [X_e_x, Y_e_x] = DomainSetup(x_range,y_range,Nx,Ny,"xe");
-                X_e_x = transpose(X_e_x);
-                Y_e_x = transpose(Y_e_x);
+                X_e_x = X_e_x';
+                Y_e_x = Y_e_x';
                 for i = 1:Nx+1
                     for j = 1:Ny+2
                         if s.x(i,j) == 0 || (X_e_x(i,j)-xi)/dx > 1.5 || (Y_e_x(i,j)-eta)/dx > 1.5
@@ -30,10 +41,11 @@ function out = E_op(xi,eta,s,dim)
                     end
                 end
                 out = sum(sum(out));
+                X_e_x = X_e_x';
+                Y_e_x = Y_e_x';
             elseif dim == 2
-                [X_e_y, Y_e_y] = DomainSetup(x_range,y_range,Nx,Ny,"ye");
-                X_e_y = transpose(X_e_y);
-                Y_e_y = transpose(Y_e_y);                
+                X_e_y = X_e_y';
+                Y_e_y = Y_e_y';                
                 for i = 1:Nx+2
                     for j = 1:Ny+1
                         if s.y(i,j) == 0 || (X_e_y(i,j)-xi)/dx > 1.5 || (Y_e_y(i,j)-eta)/dx > 1.5
@@ -44,6 +56,8 @@ function out = E_op(xi,eta,s,dim)
                     end
                 end
                 out = sum(sum(out));
+                X_e_y = X_e_y';
+                Y_e_y = Y_e_y';
             else
                 error("Dimension exceeds 2.")
             end
