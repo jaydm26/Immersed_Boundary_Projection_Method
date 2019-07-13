@@ -1,13 +1,11 @@
 function A = div(A,U,dim)
     
     global Nx Ny
-    
+    % This is the divergence operation.
     if nargin == 2
         if U.data ~= "edge"
             error("Check Data Type. Data Type can only be edge")
         else
-            Nx = U.size(1);
-            Ny = U.size(2);
             A = CellData(Nx,Ny);
             for i = 2:Nx+1
                 for j = 2:Ny+1
@@ -15,12 +13,11 @@ function A = div(A,U,dim)
                 end
             end
         end
+    % This is the differencing operations.
     elseif nargin == 3
         if U.data == "edge" 
             switch lower(A.data)
                 case "node"
-                    Nx = U.size(1);
-                    Ny = U.size(2);
                     if dim == 1
                         for i = 1:Nx+1
                             for j = 1:Ny+1
@@ -35,8 +32,6 @@ function A = div(A,U,dim)
                         end
                     end
                 case "cell"
-                    Nx = U.size(1);
-                    Ny = U.size(2);
                     if dim == 1
                         for i = 2:Nx+1
                             for j = 1:Ny+2

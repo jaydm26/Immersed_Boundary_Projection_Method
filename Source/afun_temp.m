@@ -1,14 +1,6 @@
 function AX = afun_temp(X)
     
-    global body_map
+    HX = H_operation("cell",X);
     
-    k = length(body_map(:,1));
-    Fx = X(1:k);
-    Fy = X(k+1:end);
-    
-    gamma = CTH(Fx,Fy);
-    
-    [Ax,Ay] = ECL_inv(gamma);
-    
-    AX = [-Ax;-Ay];
+    AX = E_operation("cell",HX);
 end

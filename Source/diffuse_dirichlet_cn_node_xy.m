@@ -1,10 +1,10 @@
-function [t,gamma] = diffuse_dirichlet_cn_node_xy(t,gamma,gamma0,rhs,dt)
+function [t,gamma] = diffuse_dirichlet_cn_node_xy(t,gamma,gamma0,rhs,dt,velocity)
 
     global Nx Ny Fo
     gamma_bc = NodeData(Nx,Ny);
-    gamma_bc = apply_bc_sp(gamma_bc,gamma0); % At time t
+    gamma_bc = apply_bc_sp(gamma_bc,gamma0,velocity); % At time t
     rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
-    gamma_bc = apply_bc_sp(gamma_bc,gamma0); % At time t+dt
+    gamma_bc = apply_bc_sp(gamma_bc,gamma0,velocity); % At time t+dt
     rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
     
     %% Round 1
@@ -90,7 +90,7 @@ function [t,gamma] = diffuse_dirichlet_cn_node_xy(t,gamma,gamma0,rhs,dt)
     
     gamma.x = gamma.x';
     
-    gamma = apply_bc_sp(gamma,gamma0);
+    gamma = apply_bc_sp(gamma,gamma0,velocity);
     
     t = t + dt;
     

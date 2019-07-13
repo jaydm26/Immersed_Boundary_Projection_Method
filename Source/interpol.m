@@ -1,7 +1,6 @@
 function U = interpol(U,V,dim)
     
-    % Interpolates data in V to U. Add the non-dim version below the full
-    % code.
+    % Interpolates data in V to U.
     if U.size ~= V.size
         error("Data sizes do not match")
     else

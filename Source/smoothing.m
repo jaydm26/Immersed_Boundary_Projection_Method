@@ -1,6 +1,4 @@
 function U = smoothing(U,f,method,type,TypeVal)
-    
-    addpath('/Users/jaymehta/Desktop/Homework and Exams/250H/MATLAB Codes/Finals/Source')
      
     global Nx Ny
     

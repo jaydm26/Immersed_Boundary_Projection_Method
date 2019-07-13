@@ -1,11 +1,11 @@
-function [t,T] = diffuse_dirichlet_cn_cell_xy(t,T,T0,rhs,dt)
+function [t,T] = diffuse_dirichlet_cn_cell_xy(t,T,T0,rhs,dt,velocity)
 
-    global Nx Ny Fo
+    global Nx Ny Fo_t
     T_bc = CellData(Nx,Ny);
-    T_bc = apply_bc_temp(T_bc,T0); % At time t
-    rhs.x = rhs.x + T_bc.x * 0.5 * Fo;
-    T_bc = apply_bc_temp(T_bc,T0); % At time t+dt
-    rhs.x = rhs.x + T_bc.x * 0.5 * Fo;
+    T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t
+    rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+    T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t+dt
+    rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
     
     %% Round 1
     
@@ -24,7 +24,7 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(t,T,T0,rhs,dt)
     
     % Now construct the AX = B problem
     
-    A = eye(Nx) - 0.5 * Fo * LC;
+    A = eye(Nx) - 0.5 * Fo_t * LC;
     for j = 2:Ny+1
         B = rhs.x(2:Nx+1,j);
         a = zeros(length(A)-1,1);
@@ -64,7 +64,7 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(t,T,T0,rhs,dt)
         end
     end
     
-    A = eye(Ny) - 0.5*Fo*LC;
+    A = eye(Ny) - 0.5*Fo_t*LC;
     for j = 2:Nx+1
         B = rhs.x(2:Ny+1,j);
         a = zeros(length(A)-1,1);
@@ -90,7 +90,7 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(t,T,T0,rhs,dt)
     
     T.x = T.x';
     
-    T = apply_bc_temp(T,T0);
+    T = apply_bc_temp(T,T0,velocity);
     
     t = t + dt;
     

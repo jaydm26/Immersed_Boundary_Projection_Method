@@ -5,20 +5,26 @@ function out = H_operation(DataType,Fx,Fy)
     switch DataType
         case "node"
             out = NodeData(Nx,Ny);
+            X_n = X_n';
+            Y_n = Y_n';
             for i = 1:Nx+1
                 for j = 1:Ny+1
                     out.x(i,j) = H_op(X_n(i,j),Y_n(i,j),Fx);
                 end
             end
-            
+            X_n = X_n';
+            Y_n = Y_n';
         case "cell"
             out = CellData(Nx,Ny);
+            X_c = X_c';
+            Y_c = Y_c';
             for i = 1:Nx+2
                 for j = 1:Ny+2
                     out.x(i,j) = H_op(X_c(i,j),Y_c(i,j),Fx);
                 end
             end
-            
+            X_c = X_c';
+            Y_c = Y_c';
         case "edge"
             if nargin == 3
                 out = EdgeData(Nx,Ny);

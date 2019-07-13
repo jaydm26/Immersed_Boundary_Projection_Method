@@ -1,7 +1,9 @@
 function out = E_op(xi,eta,s,dim)
-    global Nx Ny X_n Y_n X_e_x Y_e_x X_e_y Y_e_y X_c Y_c
+    global Nx Ny X_n Y_n X_e_x Y_e_x X_e_y Y_e_y X_c Y_c dx dy
     if s.data == "node"
         if nargin == 3
+            X_n = X_n';
+            Y_n = Y_n';
             for i = 1:Nx+1
                 for j = 1:Ny+1
                     if s.x(i,j) == 0 || (X_n(i,j)-xi)/dx > 1.5 || (Y_n(i,j)-eta)/dx > 1.5
@@ -12,9 +14,13 @@ function out = E_op(xi,eta,s,dim)
                 end
             end
             out = sum(sum(out));
+            X_n = X_n';
+            Y_n = Y_n';
         end
     elseif s.data == "cell"
         if nargin == 3
+            X_c = X_c';
+            Y_c = Y_c';
             for i = 1:Nx+2
                 for j = 1:Ny+2
                     if s.x(i,j) == 0 || (X_c(i,j)-xi)/dx > 1.5 || (Y_c(i,j)-eta)/dx > 1.5
@@ -25,6 +31,8 @@ function out = E_op(xi,eta,s,dim)
                 end
             end
             out = sum(sum(out));
+            X_c = X_c';
+            Y_c = Y_c';
         end
     elseif s.data == "edge"
         if nargin == 4
