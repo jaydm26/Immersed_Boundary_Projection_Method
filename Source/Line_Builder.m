@@ -1,7 +1,8 @@
 function [map,L,theta] = Line_Builder(xL,xR,yL,yR)
     
     % Builds a bunch of points lying on the line dx distance apart from
-    % each other.
+    % each other. Map gives the X and Y coordinates of the line. L gives
+    % the length. Theta gives the angle of the line with the x-axis.
     
     global dx dy
     

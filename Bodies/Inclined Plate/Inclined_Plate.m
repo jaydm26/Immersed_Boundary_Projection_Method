@@ -3,13 +3,12 @@ clear all
 clc
 rmpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source')
 rmpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source/dst_idst')
-
 %% Add Paths
 addpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source')
 addpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source/dst_idst')
 %% Set up the problem domain and the problem object
 
-global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat U...
+global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat_n U...
     X_e_x Y_e_x X_e_y Y_e_y Fo Co
  
 % Domain
@@ -22,41 +21,7 @@ y_range = [-5 5];
 
 %% Create the L^-1 operator using Lattice Green's function
 
-Nx = 2*Nx; % Had to update due to global declaration
-Ny = 2*Ny; % Reset after this setup
-
-[X_n2, Y_n2] = DomainSetup(x_range,y_range,Nx,Ny,"node");
-
-i_center = Nx/2 + 1;
-j_center = Ny/2 + 1;
-
-g_0 = NodeData(Nx,Ny);
-% Define boundaries of g_0 using the Green's Function for Laplace in 2D
-G = @(x,y) 1/(4*pi) * log(x^2+y^2);
-
-for i = [1,Nx+1]
-    for j = 1:Ny+1
-        g_0.x(i,j) = G(X_n2(i,j),Y_n2(i,j));
-    end
-end
-
-for i = 1:Nx+1
-    for j = [1,Ny+1]
-        g_0.x(i,j) = G(X_n2(i,j),Y_n2(i,j));
-    end
-end
-
-f = NodeData(Nx,Ny);
-f.x(i_center,j_center) = 1;
-
-rhs = laplacian_2(g_0);
-rhs.x = -rhs.x + f.x;
-
-g_0 = smoothing(g_0,rhs,"...","dst");
-g_hat = fft2(g_0.x); % In preparation of the FFT operator
-
-Nx = Nx/2; % Resetting everything
-Ny = Ny/2;
+g_hat_n = L_inv("node");
 
 %% Setting up the Domain of the Problem
 
@@ -67,49 +32,16 @@ Ny = Ny/2;
 
 %% Setting up the Object
 
-% L = 3;
-% R = 1;
-xL = -2.5;
-yL = -2.5;
-xR = 2.5;
-yR = 2.5;
-% body_function = @(x,y) (x-xc)^2 + (y-yc)^2 - (R)^2;
+xL = -0.5 * sind(30);
+yL = 0.5 * cosd(30);
+xR = 0.5 * sind(30);
+yR = -0.5 * cosd(30);
 
-% N_theta = floor(2*pi*R/dx);
-% d_theta = 2*pi/N_theta;
+[body_map,L,theta] = Line_Builder(xL,xR,yL,yR);
 
-% theta_range = 0:d_theta:2*pi-d_theta;
-L = sqrt((xR-xL)^2 + (yR-yL)^2);
-theta = atan((yR-yL)/(xR-xL));
-
-if dx * cos(theta) ~= 0
-    Nxl = ceil((xR-xL)/(dx*cos(theta)));
-    dxl = (xR-xL)/Nxl;
-    body_map(:,1) = xL:dxl:xR;
-else
-    body_map(:,1) = xL;
-end
-
-if dx * sin(theta) ~= 0
-    Nyl = ceil((yR-yL)/(dx*sin(theta)));
-    dyl = (yR-yL)/Nyl;
-    body_map(:,2) = yL:dyl:yR;
-else
-    body_map(:,2) = yL;
-end
 %% Forming the A matrix for PCG. Load it from the side bar
 
-k = length(body_map(:,1));
-A = zeros(2*k,2*k);
-
-for i = 1:2*k
-    x = zeros(2*k,1);
-    x(i) = 1;
-     
-    X = afun(x);
-    
-    A(:,i) = X;
-end
+A = MatrixA_Generator("vel");
 
 %% Initializing the variables pre-solving
 
@@ -138,7 +70,6 @@ t = 0:dt:tf;
 %% Pre-Setup
 
 velocity = EdgeData(Nx,Ny); % Velocity Field
-% velocity.x(:,:) = U;
 gamma = NodeData(Nx,Ny); % Vorticity
 Fx = zeros(length(body_map(:,1)),1);
 Fy = zeros(length(body_map(:,2)),1);
@@ -152,7 +83,7 @@ Lift = 0;
 %% Boundary Conditions on Gamma
 
 gamma0 = gamma;
-gamma = apply_bc_sp(gamma,gamma0);
+gamma = apply_bc_sp(gamma,gamma0,velocity);
 
 %% Starter (Euler)
 for a = 2
@@ -187,13 +118,12 @@ for a = 2
     rhs2 = [rhs2_x;rhs2_y];
     % Now obtain the delta_f in the two directions by pcg
     delta_f = pcg(A, rhs2, 1e-1);
+    delta_f = delta_f./dt;
     
     % Now delta_f_star in the X and Y direction are the correct delta_f in the X and Y direction 
     
     delta_f_x = delta_f(1:length(body_map(:,1)));
-    delta_f_x = delta_f_x./dt;
     delta_f_y = delta_f(length(body_map(:,1))+1:end);
-    delta_f_y = delta_f_y./dt;
     
     % Now we correct for the vorticity to ensure we have no slip on the body
     
@@ -204,16 +134,13 @@ for a = 2
     % Update gamma and the forcing function % Adding the unstable component
     
     gamma.x = gamma.x + delta_gamma;% + gamma_inst.x;
-    gamma = apply_bc_sp(gamma,gamma0);
+    gamma = apply_bc_sp(gamma,gamma0,velocity);
     Fx = Fx + delta_f_x;
     Fy = Fy + delta_f_y;
     
     % Obtain the streamfunction and velocity
     
-    gamma_hat = fft2(-gamma.x,2*Nx+1,2*Ny+1);
-    sf_hat = gamma_hat .* g_hat;
-    sf_hat = ifft2(sf_hat);
-    sf.x = sf_hat(Nx+1:end,Ny+1:end); 
+    sf = L_inv_operation(-gamma.x,"node"); 
     
     velocity = curl_2(sf);
     velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
@@ -221,33 +148,10 @@ for a = 2
     
     % Calculate Lift and Drag
     
-    qq = EdgeData(Nx,Ny);
+    Hq = H_operation("edge",Fx,Fy);
     
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    
-    for i = 1:Nx+1
-        for j = 1:Ny+2
-            qq.x(i,j) = H_op(X_e_x(i,j),Y_e_x(i,j),Fx);
-        end
-    end
-    
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    for i = 1:Nx+2
-        for j = 1:Ny+1
-            qq.y(i,j) = H_op(X_e_y(i,j),Y_e_y(i,j),Fy);
-        end
-    end
-    
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    Drag(a) = -sum(sum(qq.x))*dx^2;
-    Lift(a) = sum(sum(qq.y))*dx^2;
+    Drag(a) = -sum(sum(Hq.x))*dx^2;
+    Lift(a) = sum(sum(Hq.y))*dx^2;
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
@@ -277,7 +181,7 @@ for a = 3:length(t)
     
     % Solve the diffusion problem
     
-    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(t(a),gamma,gamma0,rhs1,dt);
+    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(t(a),gamma,gamma0,rhs1,dt,velocity);
     
     % Now set up R2. Note here that R2 will have two components.
     
@@ -308,16 +212,13 @@ for a = 3:length(t)
     % Update gamma and the forcing function
     
     gamma.x = gamma.x + delta_gamma;% + gamma_inst.x;
-    gamma = apply_bc_sp(gamma,gamma0);
+    gamma = apply_bc_sp(gamma,gamma0,velocity);
     Fx = Fx + delta_f_x;
     Fy = Fy + delta_f_y;
     
     % Obtain the streamfunction and velocity
     
-    gamma_hat = fft2(-gamma.x,2*Nx+1,2*Ny+1);
-    sf_hat = gamma_hat .* g_hat;
-    sf_hat = ifft2(sf_hat);
-    sf.x = sf_hat(Nx+1:end,Ny+1:end);
+    sf = L_inv_operation(-gamma.x,"node");
     
     velocity = curl_2(sf);
     velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
@@ -325,33 +226,10 @@ for a = 3:length(t)
     
     % Calculate Lift and Drag
     
-    qq = EdgeData(Nx,Ny);
+    Hq = H_operation("edge",Fx,Fy);
     
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    
-    for i = 1:Nx+1
-        for j = 1:Ny+2
-            qq.x(i,j) = H_op(X_e_x(i,j),Y_e_x(i,j),Fx);
-        end
-    end
-    
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    for i = 1:Nx+2
-        for j = 1:Ny+1
-            qq.y(i,j) = H_op(X_e_y(i,j),Y_e_y(i,j),Fy);
-        end
-    end
-    
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    Drag(a) = -sum(sum(qq.x))*dx^2;
-    Lift(a) = sum(sum(qq.y))*dx^2;
+    Drag(a) = -sum(sum(Hq.x))*dx^2;
+    Lift(a) = sum(sum(Hq.y))*dx^2;
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
