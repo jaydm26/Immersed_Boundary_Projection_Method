@@ -91,14 +91,12 @@ for a = 2
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     nl = non_linear_alt(velocity);
-    nl.x = -nl.x;
-    nl.y = -nl.y;
     nl = curl_2(nl);
     
     ff = CTH(Fx,Fy);
     
     rhs1 = NodeData(Nx,Ny);
-    rhs1.x = Fo * diff_gamma.x + dt * nl.x + dt * ff.x;
+    rhs1.x = Fo * diff_gamma.x - dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -169,15 +167,13 @@ for a = 3:length(t)
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     rhs1 = NodeData(Nx,Ny);
-    rhs1.x = -dt * 0.5 * nl.x;
+    rhs1.x = dt * 0.5 * nl.x;
     nl = non_linear_alt(velocity);
-    nl.x = -nl.x;
-    nl.y = -nl.y;
     nl = curl_2(nl);
     
     ff = CTH(Fx,Fy);
     
-    rhs1.x = Fo * diff_gamma.x + 1.5 * dt * nl.x + dt * ff.x;
+    rhs1.x = rhs1.x + Fo * diff_gamma.x - 1.5 * dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -253,6 +249,21 @@ xlabel("X/L")
 ylabel("Y/L")
 f1.WindowState = 'fullscreen';
 
+%% Vorticity
+
+xi = body_map(:,1);
+eta = body_map(:,2);
+f2 = figure;
+contour(X_n./(L),Y_n./(L),(gamma.x'),-3:0.4:3)
+hold on
+plot(xi./(L),eta./(L),"LineWidth",2);
+hold off
+pbaspect([1 1 1])
+title({'Vorticity for a Flat Plate of L = ',num2str(L),' flow is of uniform velocity of U = ',num2str(U)})
+xlabel("X/L")
+ylabel("Y/L")
+f2.WindowState = 'fullscreen';
+
 %% Quiver Plot
 
 xi = body_map(:,1);
@@ -271,4 +282,4 @@ title({'Velocity for a Flat Plate of L = ',num2str(L),' flow is of uniform veloc
 xlabel("X/L")
 ylabel("Y/L")
 axis tight
-f4.WindowState = 'fullscreen'
+f4.WindowState = 'fullscreen';

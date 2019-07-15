@@ -9,7 +9,7 @@ addpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source')
 addpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source/dst_idst')
 %% Set up the problem domain and the problem object
 
-global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat U...
+global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat_n U...
     X_e_x Y_e_x X_e_y Y_e_y Fo Co
  
 % Domain
@@ -17,46 +17,12 @@ global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat U...
 Nx = 64;
 Ny = 64;
 
-x_range = [-5 5];
-y_range = [-5 5];
+x_range = [-2.5 2.5];
+y_range = [-2.5 2.5];
 
 %% Create the L^-1 operator using Lattice Green's function
 
-Nx = 2*Nx; % Had to update due to global declaration
-Ny = 2*Ny; % Reset after this setup
-
-[X_n2, Y_n2] = DomainSetup(x_range,y_range,Nx,Ny,"node");
-
-i_center = Nx/2 + 1;
-j_center = Ny/2 + 1;
-
-g_0 = NodeData(Nx,Ny);
-% Define boundaries of g_0 using the Green's Function for Laplace in 2D
-G = @(x,y) 1/(4*pi) * log(x^2+y^2);
-
-for i = [1,Nx+1]
-    for j = 1:Ny+1
-        g_0.x(i,j) = G(X_n2(i,j),Y_n2(i,j));
-    end
-end
-
-for i = 1:Nx+1
-    for j = [1,Ny+1]
-        g_0.x(i,j) = G(X_n2(i,j),Y_n2(i,j));
-    end
-end
-
-f = NodeData(Nx,Ny);
-f.x(i_center,j_center) = 1;
-
-rhs = laplacian_2(g_0);
-rhs.x = -rhs.x + f.x;
-
-g_0 = smoothing(g_0,rhs,"...","dst");
-g_hat = fft2(g_0.x); % In preparation of the FFT operator
-
-Nx = Nx/2; % Resetting everything
-Ny = Ny/2;
+g_hat_n = L_inv("node");
 
 %% Setting up the Domain of the Problem
 
@@ -67,8 +33,8 @@ Ny = Ny/2;
 
 %% Setting up the Object
 
-x_corner = [-1.5 1.5 1.5]; %[xBL xUL xUR xBR];
-y_corner = [0 1.5 -1.5]; %[yBL yUL yUR yBR];
+x_corner = [-0.5 -0.5 0.5 0.5]; %[xBL xUL xUR xBR];
+y_corner = [-0.5 0.5 0.5 -0.5]; %[yBL yUL yUR yBR];
 L = zeros(length(x_corner),1);
 theta = zeros(length(x_corner),1);
 
@@ -101,17 +67,7 @@ body_map = [body_map_x(1:end-1),body_map_y(1:end-1)];
 char_L = max(L);
 %% Forming the A matrix for PCG. Load it from the side bar
 
-k = length(body_map(:,1));
-A = zeros(2*k,2*k);
-
-for i = 1:2*k
-    x = zeros(2*k,1);
-    x(i) = 1;
-     
-    X = afun(x);
-    
-    A(:,i) = X;
-end
+A = MatrixA_Generator("vel");
 
 %% Initializing the variables pre-solving
 
@@ -127,20 +83,19 @@ V = 0;
 Re = 40;
 nu = U * char_L / Re;
 
-Co = 0.01;
+Co = 0.2;
 Fo = 5;
 dt = min([Fo * dx^2/nu,Co*dx]);
 
 Fo = nu * dt/dx^2;
-Co = dt/dx;
-t_steady = 1/nu;
+Co = U * dt/dx;
+t_steady = (char_L)^2/nu;
 tf = t_steady;
 time_range = 0:dt:tf;
 
 %% Pre-Setup
 
 velocity = EdgeData(Nx,Ny); % Velocity Field
-% velocity.x(:,:) = U;
 gamma = NodeData(Nx,Ny); % Vorticity
 Fx = zeros(length(body_map(:,1)),1);
 Fy = zeros(length(body_map(:,2)),1);
@@ -154,7 +109,7 @@ Lift = 0;
 %% Boundary Conditions on Gamma
 
 gamma0 = gamma;
-gamma = apply_bc_sp(gamma,gamma0);
+gamma = apply_bc_sp(gamma,gamma0,velocity);
 
 %% Starter (Euler)
 for t = 2
@@ -162,14 +117,12 @@ for t = 2
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     nl = non_linear_alt(velocity);
-    nl.x = -nl.x;
-    nl.y = -nl.y;
     nl = curl_2(nl);
     
     ff = CTH(Fx,Fy);
     
     rhs1 = NodeData(Nx,Ny);
-    rhs1.x = Fo * diff_gamma.x + dt * nl.x + dt * ff.x;
+    rhs1.x = Fo * diff_gamma.x - dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -189,13 +142,12 @@ for t = 2
     rhs2 = [rhs2_x;rhs2_y];
     % Now obtain the delta_f in the two directions by pcg
     delta_f = pcg(A, rhs2, 1e-1);
+    delta_f = delta_f./dt;
     
     % Now delta_f_star in the X and Y direction are the correct delta_f in the X and Y direction 
     
     delta_f_x = delta_f(1:length(body_map(:,1)));
-    delta_f_x = delta_f_x./dt;
     delta_f_y = delta_f(length(body_map(:,1))+1:end);
-    delta_f_y = delta_f_y./dt;
     
     % Now we correct for the vorticity to ensure we have no slip on the body
     
@@ -206,16 +158,13 @@ for t = 2
     % Update gamma and the forcing function
     
     gamma.x = gamma.x + delta_gamma;% + gamma_inst.x;
-    gamma = apply_bc_sp(gamma,gamma0);
+    gamma = apply_bc_sp(gamma,gamma0,velocity);
     Fx = Fx + delta_f_x;
     Fy = Fy + delta_f_y;
     
     % Obtain the streamfunction and velocity
     
-    gamma_hat = fft2(-gamma.x,2*Nx+1,2*Ny+1);
-    sf_hat = gamma_hat .* g_hat;
-    sf_hat = ifft2(sf_hat);
-    sf.x = sf_hat(Nx+1:end,Ny+1:end); 
+    sf = L_inv_operation(-gamma.x,"node"); 
     
     velocity = curl_2(sf);
     velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
@@ -223,33 +172,10 @@ for t = 2
     
     % Calculate Lift and Drag
     
-    qq = EdgeData(Nx,Ny);
+    Hq = H_operation("edge",Fx,Fy);
     
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    
-    for i = 1:Nx+1
-        for j = 1:Ny+2
-            qq.x(i,j) = H_op(X_e_x(i,j),Y_e_x(i,j),Fx);
-        end
-    end
-    
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    for i = 1:Nx+2
-        for j = 1:Ny+1
-            qq.y(i,j) = H_op(X_e_y(i,j),Y_e_y(i,j),Fy);
-        end
-    end
-    
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    Drag(t) = -sum(sum(qq.x))*dx^2;
-    Lift(t) = sum(sum(qq.y))*dx^2;
+    Drag(t) = -sum(sum(Hq.x))*dx^2;
+    Lift(t) = sum(sum(Hq.y))*dx^2;
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
@@ -261,25 +187,23 @@ end
 
 %% CN-AB2
 
-for t = 3:length(time_range)
+for t = 417:length(time_range)
     
     % Set up R1
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     rhs1 = NodeData(Nx,Ny);
-    rhs1.x = -dt * 0.5 * nl.x;
+    rhs1.x = dt * 0.5 * nl.x;
     nl = non_linear_alt(velocity);
-    nl.x = -nl.x;
-    nl.y = -nl.y;
     nl = curl_2(nl);
     
     ff = CTH(Fx,Fy);
     
-    rhs1.x = Fo * diff_gamma.x + 1.5 * dt * nl.x + dt * ff.x;
+    rhs1.x = rhs1.x + Fo * diff_gamma.x - 1.5 * dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
-    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(time_range(t),gamma,gamma0,rhs1,dt);
+    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(time_range(t),rhs1,gamma,gamma0);
     
     % Now set up R2. Note here that R2 will have two components.
     
@@ -316,10 +240,7 @@ for t = 3:length(time_range)
     
     % Obtain the streamfunction and velocity
     
-    gamma_hat = fft2(-gamma.x,2*Nx+1,2*Ny+1);
-    sf_hat = gamma_hat .* g_hat;
-    sf_hat = ifft2(sf_hat);
-    sf.x = sf_hat(Nx+1:end,Ny+1:end);
+    sf = L_inv_operation(-gamma.x,"node");
     
     velocity = curl_2(sf);
     velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
@@ -327,38 +248,16 @@ for t = 3:length(time_range)
     
     % Calculate Lift and Drag
     
-    qq = EdgeData(Nx,Ny);
+    Hq = H_operation("edge",Fx,Fy);
     
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    
-    for i = 1:Nx+1
-        for j = 1:Ny+2
-            qq.x(i,j) = H_op(X_e_x(i,j),Y_e_x(i,j),Fx);
-        end
-    end
-    
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    for i = 1:Nx+2
-        for j = 1:Ny+1
-            qq.y(i,j) = H_op(X_e_y(i,j),Y_e_y(i,j),Fy);
-        end
-    end
-    
-    X_e_x = X_e_x';
-    Y_e_x = Y_e_x';
-    X_e_y = X_e_y';
-    Y_e_y = Y_e_y';
-    
-    Drag(t) = -sum(sum(qq.x))*dx^2;
-    Lift(t) = sum(sum(qq.y))*dx^2;
+    Drag(t) = -sum(sum(Hq.x))*dx^2;
+    Lift(t) = sum(sum(Hq.y))*dx^2;
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
     conv = 1/Nx * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
-    if conv <= tol
+%     conv = abs(Drag(t) / Drag(t-1) - 1);
+    if conv <= tol || conv >= 1e6
         break
     end
 end
@@ -374,10 +273,27 @@ hold on
 plot(xi./(char_L),eta./(char_L),"LineWidth",2);
 hold off
 pbaspect([1 1 1])
-title({'Streamlines for a Flat Plate of L = ',num2str(char_L),' flow is of uniform velocity of U = ',num2str(U)})
+title({'Streamlines for a Closed Object of Characteristic Length L = ',num2str(char_L),' placed in a uniform velocity of U = ',num2str(U)})
 xlabel("X/L")
 ylabel("Y/L")
 f1.WindowState = 'fullscreen';
+
+%% Vorticity
+
+xi = body_map(:,1);
+xi = [xi;xi(1)];
+eta = body_map(:,2);
+eta = [eta;eta(1)];
+f2 = figure;
+contour(X_n./(char_L),Y_n./(char_L),(gamma.x'))
+hold on
+plot(xi./(char_L),eta./(char_L),"LineWidth",2);
+hold off
+pbaspect([1 1 1])
+title({'Vorticity for a Closed Object of Characteristic Length L = ',num2str(char_L),' placed in a uniform velocity of U = ',num2str(U)})
+xlabel("X/L")
+ylabel("Y/L")
+f2.WindowState = 'fullscreen';
 
 %% Quiver Plot
 
@@ -395,7 +311,7 @@ hold on
 plot(xi./(char_L),eta./(char_L),"LineWidth",2);
 hold off
 pbaspect([1 1 1])
-title({'Velocity for a Flat Plate of L = ',num2str(char_L),' flow is of uniform velocity of U = ',num2str(U)})
+title({'Velocity for a Closed Object of Characteristic Length L = ',num2str(char_L),' placed in a uniform velocity of U = ',num2str(U)})
 xlabel("X/L")
 ylabel("Y/L")
 axis tight

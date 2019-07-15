@@ -17,8 +17,8 @@ global Nx Ny dx dy dt X_n Y_n body_map x_range y_range g_hat_n U...
 Nx = 64;
 Ny = 64;
 
-x_range = [-10 10];
-y_range = [-10 10];
+x_range = [-5 5];
+y_range = [-5 5];
 
 %% Create the L^-1 operator using Lattice Green's function
 
@@ -33,7 +33,7 @@ g_hat_n = L_inv("node");
 
 %% Setting up the Object
 
-R = 1;
+R = 0.5;
 xc = 0;
 yc = 0;
 body_function = @(x,y) (x-xc)^2 + (y-yc)^2 - (R)^2;
@@ -41,7 +41,7 @@ body_function = @(x,y) (x-xc)^2 + (y-yc)^2 - (R)^2;
 N_theta = floor(2*pi*R/dx);
 d_theta = 2*pi/N_theta;
 
-theta_range = 0:d_theta:2*pi-d_theta;
+theta_range = 0:d_theta:pi;
 
 body_map = zeros(length(theta_range),2);
 
@@ -52,17 +52,7 @@ end
 
 %% Forming the A matrix for PCG. Load it from the side bar
 
-k = length(body_map(:,1));
-A = zeros(2*k,2*k);
-
-for i = 1:2*k
-    x = zeros(2*k,1);
-    x(i) = 1;
-     
-    X = afun(x);
-    
-    A(:,i) = X;
-end
+A = MatrixA_Generator("vel");
 
 %% Initializing the variables pre-solving
 
@@ -86,12 +76,11 @@ Fo = nu * dt/dx^2;
 Co = dt/dx;
 t_steady = 1/nu;
 tf = t_steady;
-t = 0:dt:tf;
+time_range = 0:dt:tf;
 
 %% Pre-Setup
 
 velocity = EdgeData(Nx,Ny); % Velocity Field
-% velocity.x(:,:) = U;
 gamma = NodeData(Nx,Ny); % Vorticity
 Fx = zeros(length(body_map(:,1)),1);
 Fy = zeros(length(body_map(:,2)),1);
@@ -108,7 +97,7 @@ gamma0 = gamma;
 gamma = apply_bc_sp(gamma,gamma0);
 
 %% Starter (Euler)
-for a = 2
+for t = 2
     % Set up R1
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
@@ -170,8 +159,8 @@ for a = 2
     
     Hq = H_operation("edge",Fx,Fy);
     
-    Drag(a) = -sum(sum(Hq.x))*dx^2;
-    Lift(a) = sum(sum(Hq.y))*dx^2;
+    Drag(t) = -sum(sum(Hq.x))*dx^2;
+    Lift(t) = sum(sum(Hq.y))*dx^2;
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
@@ -183,7 +172,7 @@ end
 
 %% CN-AB2
 
-for a = 3:length(t)
+for t = 3:length(time_range)
     
     % Set up R1
     gamma0 = gamma;
@@ -199,7 +188,7 @@ for a = 3:length(t)
     
     % Solve the diffusion problem
     
-    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(t(a),gamma,gamma0,rhs1,dt);
+    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(time_range(t),rhs1,gamma,gamma0);
     
     % Now set up R2. Note here that R2 will have two components.
     
@@ -246,8 +235,8 @@ for a = 3:length(t)
     
     Hq = H_operation("edge",Fx,Fy);
     
-    Drag(a) = -sum(sum(Hq.x))*dx^2;
-    Lift(a) = sum(sum(Hq.y))*dx^2;
+    Drag(t) = -sum(sum(Hq.x))*dx^2;
+    Lift(t) = sum(sum(Hq.y))*dx^2;
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
@@ -259,9 +248,9 @@ end
 %% Streamlines
 
 xi = body_map(:,1);
-xi = [xi;xi(1)];
+% xi = [xi;xi(1)];
 eta = body_map(:,2);
-eta = [eta;eta(1)];
+% eta = [eta;eta(1)];
 f1 = figure;
 contour(X_n./(2*R),Y_n./(2*R),(sf.x'))
 hold on
@@ -276,9 +265,9 @@ f1.WindowState = 'fullscreen';
 %% Vorticity
 
 xi = body_map(:,1);
-xi = [xi;xi(1)];
+% xi = [xi;xi(1)];
 eta = body_map(:,2);
-eta = [eta;eta(1)];
+% eta = [eta;eta(1)];
 f1 = figure;
 contour(X_n./(2*R),Y_n./(2*R),(gamma.x'))
 hold on
@@ -294,9 +283,9 @@ f1.WindowState = 'fullscreen';
 %% Quiver Plot
 
 xi = body_map(:,1);
-xi = [xi;xi(1)];
+% xi = [xi;xi(1)];
 eta = body_map(:,2);
-eta = [eta;eta(1)];
+% eta = [eta;eta(1)];
 f4 = figure;
 qx = NodeData(Nx,Ny);
 qy = NodeData(Nx,Ny);

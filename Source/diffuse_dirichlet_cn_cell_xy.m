@@ -1,11 +1,26 @@
-function [t,T] = diffuse_dirichlet_cn_cell_xy(t,T,T0,rhs,dt,velocity)
-
-    global Nx Ny Fo_t
-    T_bc = CellData(Nx,Ny);
-    T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t
-    rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
-    T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t+dt
-    rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+function [t,T] = diffuse_dirichlet_cn_cell_xy(t,rhs,T,T0,velocity)
+    
+    global Nx Ny Fo_t dt
+    
+    if nargin == 5
+        T_bc = CellData(Nx,Ny);
+        T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t
+        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+        T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t+dt
+        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+    elseif nargin == 4
+        T_bc = CellData(Nx,Ny);
+        T_bc = apply_bc_temp(T_bc,T0); % At time t
+        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+        T_bc = apply_bc_temp(T_bc,T0); % At time t+dt
+        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+    elseif nargin == 3
+        T_bc = CellData(Nx,Ny);
+        T_bc = apply_bc_temp(T_bc); % At time t
+        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+        T_bc = apply_bc_temp(T_bc); % At time t+dt
+        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+    end
     
     %% Round 1
     
@@ -90,7 +105,13 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(t,T,T0,rhs,dt,velocity)
     
     T.x = T.x';
     
-    T = apply_bc_temp(T,T0,velocity);
+    if nargin == 5
+        T = apply_bc_temp(T,T0,velocity);
+    elseif nargin == 4
+        T = apply_bc_temp(T,T0);
+    elseif nargin == 3
+        T = apply_bc_temp(T);
+    end
     
     t = t + dt;
     
