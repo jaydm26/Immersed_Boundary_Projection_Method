@@ -1,0 +1,35 @@
+function params = flow_parameters(dx, dt, U, nu, Fo, Co, char_L)
+    %
+    % Creates a params data structure which contains all important flow
+    % parameters.
+    %
+    % Variable lookup:
+    % 
+    % dx: Size of each cell. *Ensure that dx = dy. The code will give
+    % erroneous results otherwise.*
+    %
+    % dt: Size of each time step moved during one iteration.
+    % 
+    % U: Characteristic velocity for the flow.
+    %
+    % nu: Kinematic Viscosity of the flow.
+    %
+    % Fo: Fourier Number defined by Fo = nu * dt / dx^2. Refer to reference
+    % for further explanation.
+    %
+    % Co: Courant Number defined by Co = U * dt / dx. Refer to reference
+    % for further explanation.
+    % 
+    % char_L: Characteristic length for the flow.
+    
+    params = struct;
+    
+    params.dx = dx;
+    params.dt = dt;
+    params.U = U;
+    params.nu = nu;
+    params.Fo = Fo;
+    params.Co = Co;
+    params.char_L = char_L;
+end
+    

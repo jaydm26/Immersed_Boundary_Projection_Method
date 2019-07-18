@@ -1,4 +1,4 @@
-function A = curl(U,dim)
+function A = curl_2(U,dim)
     switch U.data 
         case 'edge' 
             Nx = U.size(1);
