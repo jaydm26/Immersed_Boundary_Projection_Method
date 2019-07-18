@@ -1,15 +1,13 @@
-function [X,Y] = DomainSetup(params,x_range,y_range,type)
+function [X,Y] = DomainSetup(params,domain,type)
     %DOMAINSETUP Creates the domain for the data fields.
     %
-    % [X,Y] = DomainSetup(params,x_range,y_range,type)
+    % [X,Y] = DomainSetup(params,domain,type)
     %
     % Variable lookup:
     %
     % params: flow parameters.
     % 
-    % x_range: Range of the value of X.
-    %
-    % y_range: Range of the value of Y.
+    % domain: domain parameters.
     %
     % type: type of domain- "c" or "cell" for cell
     %                       "xe" or "x-edge" for X Edge Field
@@ -20,10 +18,10 @@ function [X,Y] = DomainSetup(params,x_range,y_range,type)
     %
     % Y: Full Domain for Y-direction
     
-    x0 = x_range(1);
-    x_max = x_range(2);
-    y0 = y_range(1);
-    y_max = y_range(2);    
+    x0 = domain.x_range(1);
+    x_max = domain.x_range(2);
+    y0 = domain.y_range(1);
+    y_max = domain.y_range(2);    
     
     switch lower(type)
         case {"node","nodal","n"}

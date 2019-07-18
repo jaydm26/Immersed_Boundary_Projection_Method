@@ -36,4 +36,3 @@ function params = flow_parameters(dx, dt, U, nu, Fo, Co, char_L, Fo_t)
         params.Fo_t = Fo_t;
     end
 end
-    

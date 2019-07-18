@@ -1,11 +1,17 @@
-function A = MatrixA_Generator(xi,eta,Type)
+function A = MatrixA_Generator(params,domain,g_hat,xi,eta,Type)
     %MATRIXA_GENERATOR Creates the matrix A which is used to replace 
     % ECL^-1(EC)^T or EE^T matrix used to speed up the conjugate gradient 
     % solution.
     %
-    % A = MatrixA_Generator(xi,eta,Type)
+    % A = MatrixA_Generator(params,domain,g_hat,xi,eta,Type)
     %
     % Variable lookup:
+    %
+    % params: flow parameters.
+    %
+    % domain: domain parameters.
+    %
+    % g_hat: FFT2 of the Lattice Green's Function.
     %
     % xi: X-coordinate of the Lagrangian points.
     %
@@ -25,7 +31,7 @@ function A = MatrixA_Generator(xi,eta,Type)
             for i = 1:2*k
                 x = zeros(2*k,1);
                 x(i) = 1;
-                X = afun(x);
+                X = afun(params,domain,g_hat,xi,eta,x);
                 A(:,i) = X;
             end
         case "temp"
@@ -35,7 +41,7 @@ function A = MatrixA_Generator(xi,eta,Type)
             for i = 1:k
                 x = zeros(k,1);
                 x(i) = 1;
-                X = afun_temp(x);
+                X = afun_temp(params,domain,xi,eta,x);
                 A(:,i) = X;
             end
     end

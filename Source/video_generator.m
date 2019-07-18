@@ -16,17 +16,17 @@ function video = video_generator(params,domain,filename,xi,eta,ip1,ip2)
     % ip1,ip2: input fields.
     
     X_n = domain.X_n;
-    Y_n = domain.X_n;
+    Y_n = domain.Y_n;
     char_L = params.char_L; 
     U = params.U;
-    Nx = ip1.size(1);
-    Ny = ip1.size(2);
+    Nx = domain.Nx;
+    Ny = domain.Ny;
     
     xi = [xi;xi(1)];
     eta = [eta;eta(1)];
     
     switch nargin
-        case 2
+        case 6
             [t,~,~] = size(ip1);
             s = NodeData(Nx,Ny);
             video = VideoWriter(filename,"MPEG-4");
@@ -40,7 +40,7 @@ function video = video_generator(params,domain,filename,xi,eta,ip1,ip2)
                 plot(xi./(2*char_L),eta./(2*char_L),"LineWidth",2);
                 hold off
                 pbaspect([1 1 1]);
-                title(strcat('Streamlines for a Flat Plate of D = ',num2str(2*char_L),' flow is of uniform velocity of U = ',num2str(U)));
+                title(strcat('Streamlines around a Cylinder of D = ',num2str(2*char_L),' in a flow of uniform velocity of U = ',num2str(U)));
                 xlabel("X/D");
                 ylabel("Y/D");
                 writeVideo(video,getframe(gcf));
@@ -48,7 +48,7 @@ function video = video_generator(params,domain,filename,xi,eta,ip1,ip2)
             end
             close(video)
             
-        case 3
+        case 7
             [t,~,~] = size(ip1);
             qx = NodeData(Nx,Ny);
             qy = NodeData(Nx,Ny);

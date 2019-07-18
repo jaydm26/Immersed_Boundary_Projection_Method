@@ -3,7 +3,7 @@ function op = H_operation(params,domain,DataType,xi,eta,ip1,ip2)
     % the Lagrangian points to the flow field. Refer to reference for 
     % further explanation.
     %
-    % out = H_operation(params,domain,xi,eta,Fx,Fy,DataType)
+    % op = H_operation(params,domain,DataType,xi,eta,ip1,ip2)
     %
     % Variable lookup:
     %
@@ -12,6 +12,11 @@ function op = H_operation(params,domain,DataType,xi,eta,ip1,ip2)
     % params: flow parameters.
     %
     % domain: data structure containing all domains.
+    %
+    % DataType: Data Type on which the data is to be regularized.
+    %   "cell" to regularize onto Cell Space.
+    %   "edge" to regularize onto Edge Space (requires 2 inputs).
+    %   "node" to regularize onto Node Space.
     %
     % xi: X-coordinate of the Lagrangian points.
     %

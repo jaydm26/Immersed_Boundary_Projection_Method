@@ -1,8 +1,8 @@
-function op = interpol(op,ip,dim)
+function op = interpol(ip,op,dim)
     %INTERPOL Interpolates data in ip to op. Refer to reference for further
     % explanation.
     %
-    % op = interpol(op,ip,dim)
+    % op = interpol(ip,op,dim)
     %
     % Variable lookup:
     %

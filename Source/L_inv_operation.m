@@ -12,21 +12,22 @@ function u = L_inv_operation(f,g_hat)
     % f: input for the Poisson's Equation.
     %
     % g_hat: FFT2 of the L_inv operator. Obtained from the function L_inv.
+    %
     
     Nx = f.size(1);
-    Ny = f.size(2);
+    Ny = f.size(1);
     
-    switch g_hat.data
+    switch f.data
         case "node"
             u = NodeData(Nx,Ny);
-            rhs_hat = fft2(f,2*Nx+1,2*Ny+1);
-            out_hat = rhs_hat .* g_hat_n;
+            rhs_hat = fft2(f.x,2*Nx+1,2*Ny+1);
+            out_hat = rhs_hat .* g_hat;
             out_hat = ifft2(out_hat);
             u.x = out_hat(Nx+1:end,Ny+1:end);
         case "cell"
             u = CellData(Nx,Ny);
-            rhs_hat =  fft2(f,2*Nx+2,2*Ny+2);
-            out_hat = rhs_hat .* g_hat_c;
+            rhs_hat =  fft2(f.x,2*Nx+2,2*Ny+2);
+            out_hat = rhs_hat .* g_hat;
             out_hat = ifft2(out_hat);
             u.x = out_hat(Nx+1:end,Ny+1:end);
     end

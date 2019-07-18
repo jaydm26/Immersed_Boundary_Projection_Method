@@ -1,4 +1,4 @@
-function nlt = non_linear(domain,velocity)
+function nlt = non_linear(params,domain,velocity)
     %NON_LINEAR Computes the non-linear term u.du/dx + v.du/dy and 
     % u.dv/dx + v.dv/dy present in the Navier-Stokes equation.
     %
@@ -16,29 +16,29 @@ function nlt = non_linear(domain,velocity)
     
     Nx = domain.Nx;
     Ny = domain.Ny;
-    dx = domain.dx;
-    dy = domain.dy;
+    dx = params.dx;
+    dy = params.dx;
     
     nlt = EdgeData(Nx,Ny);
     
-    u = interpol(CellData(Nx,Ny),velocity,1);
+    u = interpol(velocity,CellData(Nx,Ny),1);
     u.x = u.x .* u.x;
-    du2dx = div(EdgeData(Nx,Ny),u,1);
+    du2dx = div(u,EdgeData(Nx,Ny),1);
     du2dx.x = du2dx.x/dx;
     
-    un = interpol(NodeData(Nx,Ny),velocity,1);
-    vn = interpol(NodeData(Nx,Ny),velocity,2);
+    un = interpol(velocity,NodeData(Nx,Ny),1);
+    vn = interpol(velocity,NodeData(Nx,Ny),2);
     uv = NodeData(Nx,Ny);
     uv.x = un.x .* vn.x;
-    duvdy = div(EdgeData(Nx,Ny),uv,2);
+    duvdy = div(uv,EdgeData(Nx,Ny),2);
     duvdy.x = duvdy.x/dy;
     
-    duvdx = div(EdgeData(Nx,Ny),uv,1);
+    duvdx = div(uv,EdgeData(Nx,Ny),1);
     duvdx.y = duvdx.y/dx;
     
-    v = interpol(CellData(Nx,Ny),velocity,2);
+    v = interpol(velocity,CellData(Nx,Ny),2);
     v.x = v.x .* v.x;
-    dv2dy = div(EdgeData(Nx,Ny),v,2);
+    dv2dy = div(v,EdgeData(Nx,Ny),2);
     dv2dy.y = dv2dy.y/dy;
     
     nlt.x = du2dx.x + duvdy.x;

@@ -7,10 +7,6 @@ function op = curl_2(ip)
     %
     % Variable lookup:
     %
-    % Nx: Number of divisions in the X-direction.
-    %
-    % Ny: Number of divisions in the Y-direction.
-    %
     % ip: Input. Can be an Edge field or a Node field.
     %
     % op: output after taking curl of ip.

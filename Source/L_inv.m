@@ -25,13 +25,22 @@ function g_hat = L_inv(domain,DataType)
     Ny = domain.Ny;
     x_range = domain.x_range;
     y_range = domain.y_range;
+    params = flow_parameters_init;
+    domain2 = domain_parameters_init;
+    domain2.x_range = x_range;
+    domain2.y_range = y_range;
     
     switch DataType
         case "node"
             Nx = 2*Nx; % Had to update due to global declaration
             Ny = 2*Ny; % Reset after this setup
+            domain2.Nx = Nx;
+            domain2.Ny = Ny;
+            params.dx = (x_range(2) - x_range(1))/Nx;
 
-            [X_n2, Y_n2] = DomainSetup(x_range,y_range,Nx,Ny,"node");
+            [X_n2, Y_n2] = DomainSetup(params,domain2,"node");
+            domain2.X_n = X_n2;
+            domain2.Y_n = Y_n2;
 
             i_center = Nx/2 + 1;
             j_center = Ny/2 + 1;
@@ -60,15 +69,15 @@ function g_hat = L_inv(domain,DataType)
 
             g_0 = smoothing(g_0,rhs,"...","dst");
             g_hat = fft2(g_0.x); % In preparation of the FFT operator
-
-            Nx = Nx/2; % Resetting everything
-            Ny = Ny/2;
             
         case "cell"
             Nx = 2*Nx; % Had to update due to global declaration
             Ny = 2*Ny; % Reset after this setup
+            domain2.Nx = Nx;
+            domain2.Ny = Ny;
+            params.dx = (x_range(2) - x_range(1))/Nx;
 
-            [X_c2, Y_c2] = DomainSetup(x_range,y_range,Nx,Ny,"cell");
+            [X_c2, Y_c2] = DomainSetup(params,domain2,"cell");
 
             i_center = Nx/2 + 1;
             j_center = Ny/2 + 1;
@@ -97,8 +106,5 @@ function g_hat = L_inv(domain,DataType)
 
             g_0 = smoothing(g_0,rhs,"...","dst");
             g_hat = fft2(g_0.x); % In preparation of the FFT operator
-
-            Nx = Nx/2; % Resetting everything
-            Ny = Ny/2;
     end
 end

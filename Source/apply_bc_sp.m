@@ -45,13 +45,13 @@ function gamma = apply_bc_sp(params,gamma,gamma0,velocity)
     % Co: Courant Number defined by Co = U * dt / dx. Refer to reference
     % for further explanation.
     
-    if gamma.data ~= "node"
+    if nargin == 2 && gamma.data ~= "node"
         error("gamma is not a Node field.")
     end
-    if gamma0.data ~= "node"
+    if nargin == 3 && gamma0.data ~= "node"
         error("gamma0 is not a Node field.")
     end
-    if velocity.data ~= "edge"
+    if nargin == 4 && velocity.data ~= "edge"
         error("velocity is not an Edge field.")
     end
     Nx = gamma.size(1);
