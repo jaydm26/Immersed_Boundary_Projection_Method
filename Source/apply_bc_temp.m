@@ -53,7 +53,8 @@ function T = apply_bc_temp(params,T,T0,velocity)
         error("velocity is not an Edge field.")
     end
     
-    [Nx,Ny] = T.size;
+    Nx = T.size(1);
+    Ny = T.size(2);
     
     switch nargin
         case 2

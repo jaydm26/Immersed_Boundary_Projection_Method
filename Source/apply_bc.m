@@ -43,7 +43,8 @@ function velocity = apply_bc(velocity,t,bc)
     % vT: Boundary Condition on the top wall for velocity in the 
     % Y-direction.
     
-    [Nx,Ny] = velocity.size;
+    Nx = velocity.size(1);
+    Ny = velocity.size(2);
     
     switch velocity.data
         case "edge"

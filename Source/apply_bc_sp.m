@@ -51,7 +51,8 @@ function gamma = apply_bc_sp(params,gamma,gamma0,velocity)
     if velocity.data ~= "edge"
         error("velocity is not an Edge field.")
     end
-    [Nx,Ny] = gamma.size;
+    Nx = gamma.size(1);
+    Ny = gamma.size(2);
     
     switch nargin
         case 2
