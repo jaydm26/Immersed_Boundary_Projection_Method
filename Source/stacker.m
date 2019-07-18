@@ -1,33 +1,39 @@
-function Y = stacker(X)
+function op = stacker(ip)
+    %STACKER Stacker stacks the ip data structure in a column for POD analysis.
+    %
+    % Variable lookup:
+    %
+    % ip: input field variable.
+    %
+    % op: output stacked column.
     
-    % X is a data structure. Stacker stacks the variables in columns for
-    % POD analysis.
-    global Nx Ny
+    Nx = ip.size(1);
+    Ny = ip.size(2);
     
-    switch X.data
+    switch ip.data
         case "edge"
-            Y = zeros(((Nx+1)*(Ny+2) + (Nx+2)*(Ny+1)),1);
+            op = zeros(((Nx+1)*(Ny+2) + (Nx+2)*(Ny+1)),1);
             i = 1;
             for j = 1:Ny+2
-                Y(i:i+Nx+1-1,1) = X.x(:,j);
+                op(i:i+Nx+1-1,1) = ip.x(:,j);
                 i = i + Nx+1;
             end
             for j = 1:Ny+1
-                Y(i:i+Nx+2-1,1) = X.y(:,j);
+                op(i:i+Nx+2-1,1) = ip.y(:,j);
                 i = i + Nx+2;
             end
         case "cell"
-            Y = zeros(((Nx+2)*(Ny+2)),1);
+            op = zeros(((Nx+2)*(Ny+2)),1);
             i = 1;
             for j = 1:Ny+2
-                Y(i:i+Nx+2-1,1) = X.x(:,j);
+                op(i:i+Nx+2-1,1) = ip.x(:,j);
                 i = i + Nx+2;
             end
         case "node"
-            Y = zeros(((Nx+1)*(Ny+1)),1);
+            op = zeros(((Nx+1)*(Ny+1)),1);
             i = 1;
             for j = 1:Ny+1
-                Y(i:i+Nx+1-1,1) = X.x(:,j);
+                op(i:i+Nx+1-1,1) = ip.x(:,j);
                 i = i + Nx+1;
             end
     end

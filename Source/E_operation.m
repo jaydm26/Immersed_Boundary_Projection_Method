@@ -1,23 +1,41 @@
-function [x,y] = E_operation(DataType,source)
+function [op1,op2] = E_operation(params,domain,xi,eta,ip)
+    %E_OPERATION Executes the interpolation operation to take data from the
+    % field on to the Lagrangian points. Refer to reference for further 
+    % explanation.
+    %
+    % [op1,op2] = E_operation(params,domain,xi,eta,ip,DataType)
+    %
+    % Variable lookup:
+    %
+    % op1, op2 : output on the Lagrangian points.
+    %
+    % params: flow parameters.
+    %
+    % domain: data structure containing all domains.
+    %
+    % xi: X-coordinate of the Lagrangian points.
+    %
+    % eta: Y-corrdinate of the Lagrangian points.
+    %
+    % ip: input
     
-    global body_map
-    switch DataType
+    switch ip.data
         case "node"
-            x = zeros(length(body_map(:,1)),1);
-            for k = 1:length(body_map(:,1))
-                x(k,1) = E_op(body_map(k,1),body_map(k,2),source);
+            op1 = zeros(length(xi),1);
+            for k = 1:length(xi)
+                op1(k,1) = E_op(params,domain,xi(k),eta(k),ip);
             end
         case "cell"
-            x = zeros(length(body_map(:,1)),1);
-            for k = 1:length(body_map(:,1))
-                x(k,1) = E_op(body_map(k,1),body_map(k,2),source);
+            op1 = zeros(length(xi),1);
+            for k = 1:length(xi)
+                op1(k,1) = E_op(params,domain,xi(k),eta(k),ip);
             end
         case "edge"
-            x = zeros(length(body_map(:,1)),1);
-            y = zeros(length(body_map(:,2)),1);
-            for k = 1:length(body_map(:,1))
-                x(k,1) = E_op(body_map(k,1),body_map(k,2),source,1);
-                y(k,1) = E_op(body_map(k,1),body_map(k,2),source,2);
+            op1 = zeros(length(xi),1);
+            op2 = zeros(length(xi),1);
+            for k = 1:length(xi)
+                op1(k,1) = E_op(params,domain,xi(k),eta(k),ip,1);
+                op2(k,1) = E_op(params,domain,xi(k),eta(k),ip,2);
             end
     end
 end

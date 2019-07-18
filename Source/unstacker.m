@@ -1,31 +1,47 @@
-function Y = unstacker(X,type)
+function op = unstacker(domain,ip,type)
+    %UNSTACKER Unstacks the ip data structure in a column for POD analysis.
+    %
+    % op = UNSTACKER(domain,ip,type)
+    % 
+    % Variable lookup:
+    %
+    % domain: domain parameters.
+    %
+    % ip: input stacked column.
+    %
+    % op: output field variable.
+    %
+    % type: location of field variable- "cell" for Cell Space
+    %                                   "edge" for Edge Space
+    %                                   "node" for Node Space
     
-    global Nx Ny
+    Nx = domain.Nx;
+    Ny = domain.Ny;
     
     switch type
         case "cell"
-            Y = CellData(Nx,Ny);
+            op = CellData(Nx,Ny);
             i = 1;
             for j = 1:Ny+2
-                Y.x(:,j) = X(i:i+Nx+2-1,1);
+                op.x(:,j) = ip(i:i+Nx+2-1,1);
                 i = i + Nx+2;
             end
         case "edge"
-            Y = EdgeData(Nx,Ny);
+            op = EdgeData(Nx,Ny);
             i = 1;
             for j = 1:Ny+2
-                Y.x(:,j) = X(i:i+Nx+1-1,1);
+                op.x(:,j) = ip(i:i+Nx+1-1,1);
                 i = i + Nx+1;
             end
             for j = 1:Ny+1
-                Y.y(:,j) = X(i:i+Nx+2-1,1);
+                op.y(:,j) = ip(i:i+Nx+2-1,1);
                 i = i + Nx+2;
             end
         case "node"
-            Y = NodeData(Nx,Ny);
+            op = NodeData(Nx,Ny);
             i = 1;
             for j = 1:Ny+1
-                Y.x(:,j) = X(i:i+Nx+1-1,1);
+                op.x(:,j) = ip(i:i+Nx+1-1,1);
                 i = i + Nx+1;
             end
     end

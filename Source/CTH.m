@@ -1,17 +1,26 @@
-function gamma = CTH(Fx,Fy)
+function op = CTH(params,domain,xi,eta,Fx,Fy)
+    %CTH Executes the C^T H operation on the Lagrangian body forces.
     %
-    % Executes the C^T H operation on the Lagrangian body forces.
+    % op = CTH(params,domain,xi,eta,Fx,Fy)
     %
     % Variable lookup:
+    %
+    % params: flow parameters.
+    %
+    % domain: domain parameters.
+    %
+    % xi: X-coordinate of the Lagrangian points.
+    %
+    % eta: Y-corrdinate of the Lagrangian points.
     %
     % Fx: Lagrangian Forces in the X-direction.
     %
     % Fy: Lagrangian Forces in the Y-direction.
     %
-    % gamma: Result of the C^T H operation. H places data on the Edge
+    % op: Result of the C^T H operation. H places data on the Edge
     % field. Curl of Edge field yields a Node field.
     
-    q = H_operation("edge",Fx,Fy);
+    q = H_operation(params,domain,"edge",xi,eta,Fx,Fy);
     
-    gamma = curl_2(q);
+    op = curl_2(q);
 end

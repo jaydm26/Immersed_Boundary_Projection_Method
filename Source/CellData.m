@@ -1,12 +1,20 @@
 function p = CellData(Nx,Ny)
+    %CELLDATA Create a data structure that stores data that would be stored
+    % in the Cell Space of size (Nx+2,Ny+2). Types of field variables that 
+    % could be stored in the cell space are temperature, pressure, kinetic 
+    % energy, etc.
     %
-    % Create a data structure that stores data that would be stored in the
-    % Cell Space. Types of field variables that could be stored in the cell
-    % space are temperature, pressure, kinetic energy, etc.
+    % p = CELLDATA(Nx,Ny)
+    %
+    % Variable lookup:
+    %
+    % Nx: Number of divisions in the X-direction.
+    %
+    % Ny: Number of divisions in the Y-direction.
     % 
     % Example:
     % 
-    % T = CellData(64,64) creates a data structure with the field of:
+    % T = CELLDATA(64,64) creates a data structure with the field of:
     %
     % x: Stores the values.
     %

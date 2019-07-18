@@ -1,11 +1,12 @@
-function velocity = apply_bc(velocity,t,bc)
-    %
-    % Applies Dirichlet or Neumann Boundary conditions to the velocity
-    % fields. Note that the boundary conditions must be predefined and
-    % declared as global variables.
+function velocity = apply_bc(bc,velocity,t)
+    %APPLY_BC Applies Dirichlet or Neumann Boundary conditions to the 
+    % velocity fields. Note that the boundary conditions must be predefined
+    % and declared as global variables.
     %
     % It is important to note here that these conditions have to be defined
     % by the user. Examples available in the reference.
+    %
+    % velocity = APPLY_BC(velocity,t,bc)
     %
     % Variable lookup:
     %

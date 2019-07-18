@@ -1,10 +1,9 @@
 function gamma = apply_bc_sp(params,gamma,gamma0,velocity)
-    %
-    % Applies Boundary Condtions of Inlet to the left wall, no traction to
-    % the top and bottom wall, and convective outlet to the right wall of a
-    % data field stored in Node Space. This function is specifically
-    % created for the Nullspace Method. Refer to the reference for further
-    % explanation.
+    %APPLY_BC_SP Applies Boundary Condtions of Inlet to the left wall, no 
+    % traction to the top and bottom wall, and convective outlet to the 
+    % right wall of a data field stored in Node Space. This function is 
+    % specifically created for the Nullspace Method. Refer to the reference
+    % for further explanation.
     %
     % This works for three cases:
     %
@@ -19,10 +18,14 @@ function gamma = apply_bc_sp(params,gamma,gamma0,velocity)
     % X-velocity field as the convecting velocity. Note that this is
     % unstable. *Do not use*
     %
+    % gamma = APPLY_BC_SP(params,gamma,gamma0,velocity)
+    %
     % Variable lookup:
     % 
     % gamma: Vorticity field (NodeData) on which the boundary conditions
     % are being applied.
+    %
+    % params: flow parameters.
     %
     % gamma0: Vorticity field (NodeData) from the previous time step. Used
     % to calculate the convective outlet boundary condition.

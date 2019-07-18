@@ -1,8 +1,30 @@
-function g_hat = L_inv(DataType)
-    % Create the L_inv operator (including FFT). Coupled with the L_inv
-    % operation.
+function g_hat = L_inv(domain,DataType)
+    %L_INV Create the L_inv operator (including FFT). This is coupled with 
+    % the L_inv operation. Used for Node Data and Cell Data to solve the
+    % Poisson's equation: d^2 u / dx^2 + d^2 u / dy^2 = f. Uses the Lattice
+    % Green's Function.
+    %
+    % g_hat = L_inv(domain,x_range,y_range,DataType)
+    %
+    % Variable lookup:
+    %
+    % g_hat: fft2 of the Lattice Green's Function.
+    %
+    % domain: data structure containing all domains.
+    %
+    % x_range: minimum and maximum values of the X-corrdinate in the
+    % domain.
+    %
+    % y_range: minimum and maximum values of the Y-corrdinate in the
+    % domain.
+    %
+    % DataType: Type of L_inv operator- "cell" for Cell Space
+    %                                   "node" for Node Space
     
-    global Nx Ny x_range y_range
+    Nx = domain.Nx;
+    Ny = domain.Ny;
+    x_range = domain.x_range;
+    y_range = domain.y_range;
     
     switch DataType
         case "node"

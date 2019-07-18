@@ -1,11 +1,25 @@
-function A = MatrixA_Generator(Type)
-    
-    global body_map
+function A = MatrixA_Generator(xi,eta,Type)
+    %MATRIXA_GENERATOR Creates the matrix A which is used to replace 
+    % ECL^-1(EC)^T or EE^T matrix used to speed up the conjugate gradient 
+    % solution.
+    %
+    % A = MatrixA_Generator(xi,eta,Type)
+    %
+    % Variable lookup:
+    %
+    % xi: X-coordinate of the Lagrangian points.
+    %
+    % eta: Y-corrdinate of the Lagrangian points.
+    %
+    % A: ECL^-1(EC)^T or EE^T operation expressed as a matrix.
+    %
+    % Type: Flow variable to be solved- "vel" for velocity/vorticity field.
+    %                                   "temp" for temperature field.
     
     switch Type
         case "vel"
 
-            k = length(body_map(:,1));
+            k = length(xi);
             A = zeros(2*k,2*k);
 
             for i = 1:2*k
@@ -15,7 +29,7 @@ function A = MatrixA_Generator(Type)
                 A(:,i) = X;
             end
         case "temp"
-            k = length(body_map(:,1));
+            k = length(xi);
             A = zeros(k,k);
             
             for i = 1:k

@@ -1,25 +1,50 @@
-function [t,gamma] = diffuse_dirichlet_cn_node_xy(t,rhs,gamma,gamma0,velocity)
-
-    global Nx Ny Fo dt
+function [t,gamma] = diffuse_dirichlet_cn_node_xy(params,t,rhs,gamma,gamma0,velocity)
+    %DIFFUSE_DIRICHLET_CN_NODE_XY Solves the diffusion problem 
+    % A * delta_gamma^* = rhs1 on the Node Space. Refer to references for 
+    % further explanations.
+    %
+    % [t,gamma] = diffuse_dirichlet_cn_node_xy(params,t,rhs,gamma,gamma0,velocity)
+    %
+    % Variable lookup:
+    %
+    % Nx: Number of divisions in the X-direction.
+    %
+    % Ny: Number of divisions in the Y-direction.
+    %
+    % t: Current time.
+    %
+    % params: flow parameters.
+    %
+    % rhs: Right Hand Side (NodeData) for the diffusion problem.
+    %
+    % T: Temperature field (NodeData) on which diffusion takes place.
+    %
+    % T0: Temperature field (NodeData) from the previous time step.
+    %
+    % velocity: Current Velocity field (EdgeData). Used to calculate the
+    % convective outlet boundary condition.
     
-    if nargin == 5
+    Nx = gamma.size(1);
+    Ny = gamma.size(2);
+    
+    if nargin == 6
         gamma_bc = NodeData(Nx,Ny);
-        gamma_bc = apply_bc_sp(gamma_bc,gamma0,velocity); % At time t
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
-        gamma_bc = apply_bc_sp(gamma_bc,gamma0,velocity); % At time t+dt
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
+        gamma_bc = apply_bc_sp(params,gamma_bc,gamma0,velocity); % At time t
+        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        gamma_bc = apply_bc_sp(params,gamma_bc,gamma0,velocity); % At time t+dt
+        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+    elseif nargin == 5
+        gamma_bc = NodeData(Nx,Ny);
+        gamma_bc = apply_bc_sp(params,gamma_bc,gamma0); % At time t
+        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        gamma_bc = apply_bc_sp(params,gamma_bc,gamma0); % At time t+dt
+        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
     elseif nargin == 4
         gamma_bc = NodeData(Nx,Ny);
-        gamma_bc = apply_bc_sp(gamma_bc,gamma0); % At time t
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
-        gamma_bc = apply_bc_sp(gamma_bc,gamma0); % At time t+dt
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
-    elseif nargin == 3
-        gamma_bc = NodeData(Nx,Ny);
-        gamma_bc = apply_bc_sp(gamma_bc); % At time t
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
-        gamma_bc = apply_bc_sp(gamma_bc); % At time t+dt
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * Fo;
+        gamma_bc = apply_bc_sp(params,gamma_bc); % At time t
+        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        gamma_bc = apply_bc_sp(params,gamma_bc); % At time t+dt
+        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
     end
     %% Round 1
     
@@ -38,7 +63,7 @@ function [t,gamma] = diffuse_dirichlet_cn_node_xy(t,rhs,gamma,gamma0,velocity)
     
     % Now construct the AX = B problem
     
-    A = eye(Nx-1) - 0.5 * Fo * LN;
+    A = eye(Nx-1) - 0.5 * params.Fo * LN;
     for j = 2:Ny
         B = rhs.x(2:Nx,j);
         a = zeros(length(A)-1,1);
@@ -78,7 +103,7 @@ function [t,gamma] = diffuse_dirichlet_cn_node_xy(t,rhs,gamma,gamma0,velocity)
         end
     end
     
-    A = eye(Ny-1) - 0.5*Fo*LN;
+    A = eye(Ny-1) - 0.5 * params.Fo * LN;
     for j = 2:Nx
         B = rhs.x(2:Ny,j);
         a = zeros(length(A)-1,1);
@@ -103,14 +128,15 @@ function [t,gamma] = diffuse_dirichlet_cn_node_xy(t,rhs,gamma,gamma0,velocity)
     %% Undoing the interchange and transpose
     
     gamma.x = gamma.x';
-    if nargin == 5
-        gamma = apply_bc_sp(gamma,gamma0,velocity);
+    
+    if nargin == 6
+        gamma = apply_bc_sp(params,gamma,gamma0,velocity);
+    elseif nargin == 5
+        gamma = apply_bc_sp(params,gamma,gamma0);
     elseif nargin == 4
-        gamma = apply_bc_sp(gamma,gamma0);
-    elseif nargin == 3
-        gamma = apply_bc_sp(gamma);
+        gamma = apply_bc_sp(params,gamma);
     end
     
-    t = t + dt;
+    t = t + params.dt;
     
 end

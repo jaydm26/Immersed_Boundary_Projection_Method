@@ -1,8 +1,9 @@
-function ddf = ddf_roma_1D(r,params)
+function ddf = ddf_roma_1D(params,r)
+    %DDF_ROMA_1D Calculates the value of the discrete delta function for 
+    % the input r using the Roma et.al. (1999) version for the discrete 
+    % delta function.
     %
-    % Calculates the value of the discrete delta function for the input r
-    % using the Roma et.al. (1999) version for the discrete delta 
-    % function.
+    % ddf = ddf_roma_1D(r,params)
 
     r = abs(r/params.dx);
     if r < 0.5

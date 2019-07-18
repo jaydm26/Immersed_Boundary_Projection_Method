@@ -1,7 +1,9 @@
 function [flag] = issame(A,B)
-    % issame check whether two matrices contain the same values.
+    %ISSAME Check whether two matrices contain the same values.
     % flag = 0 says that the A = B completely.
     % flag = 1 means that A ~= B.
+    %
+    % [flag] = issame(A,B)
     %
     % Example:
     %
@@ -32,5 +34,5 @@ function [flag] = issame(A,B)
     else
     end
     
-    [flag,n] = iszero(A-B);
+    [flag,~] = iszero(A-B);
 end

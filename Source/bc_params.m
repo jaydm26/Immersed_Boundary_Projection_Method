@@ -1,7 +1,8 @@
 function bc = bc_params(uL,uR,uB,uT,vL,vR,vB,vT)
+    %BC_PARAMS Creates a data structure to pass to the apply_bc function. 
+    % This data structure contains the data for the boundary conditions.
     %
-    % Creates a data structure to pass to the apply_bc function. This data
-    % structure contains the data for the boundary conditions.
+    % bc = BC_PARAMS(uL,uR,uB,uT,vL,vR,vB,vT)
     %
     % Variable lookup:
     %

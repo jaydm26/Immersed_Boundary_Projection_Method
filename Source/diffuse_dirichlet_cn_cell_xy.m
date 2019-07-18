@@ -1,25 +1,52 @@
-function [t,T] = diffuse_dirichlet_cn_cell_xy(t,rhs,T,T0,velocity)
+function [t,T] = diffuse_dirichlet_cn_cell_xy(params,t,rhs,T,T0,velocity)
+    %DIFFUSE_DIRICHLET_CN_CELL_XY Solves the diffusion problem 
+    % A * delta_T^* = rhs1 on the Cell Space. Refer to references for 
+    % further explanations.
+    %
+    % [t,T] = diffuse_dirichlet_cn_cell_xy(params,t,rhs,T,T0,velocity)
+    %
+    % Variable lookup:
+    %
+    % Nx: Number of divisions in the X-direction.
+    %
+    % Ny: Number of divisions in the Y-direction.
+    %
+    % t: Current time.
+    %
+    % params: flow parameters.
+    %
+    % rhs: Right Hand Side (CellData) for the diffusion problem.
+    %
+    % T: Temperature field (CellData) on which diffusion takes place.
+    %
+    % T0: Temperature field (CellData) from the previous time step.
+    %
+    % velocity: Current Velocity field (EdgeData). Used to calculate the
+    % convective outlet boundary condition.
     
-    global Nx Ny Fo_t dt
+    Nx = T.size(1);
+    Ny = T.size(2);
     
-    if nargin == 5
+    if nargin == 6
         T_bc = CellData(Nx,Ny);
-        T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t
-        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
-        T_bc = apply_bc_temp(T_bc,T0,velocity); % At time t+dt
-        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+        T_bc = apply_bc_temp(params,T_bc,T0,velocity); % At time t
+        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        T_bc = apply_bc_temp(params,T_bc,T0,velocity); % At time t+dt
+        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+    elseif nargin == 5
+        T_bc = CellData(Nx,Ny);
+        T_bc = apply_bc_temp(params,T_bc,T0); % At time t
+        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        T_bc = apply_bc_temp(params,T_bc,T0); % At time t+dt
+        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
     elseif nargin == 4
         T_bc = CellData(Nx,Ny);
-        T_bc = apply_bc_temp(T_bc,T0); % At time t
-        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
-        T_bc = apply_bc_temp(T_bc,T0); % At time t+dt
-        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
-    elseif nargin == 3
-        T_bc = CellData(Nx,Ny);
-        T_bc = apply_bc_temp(T_bc); % At time t
-        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
-        T_bc = apply_bc_temp(T_bc); % At time t+dt
-        rhs.x = rhs.x + T_bc.x * 0.5 * Fo_t;
+        T_bc = apply_bc_temp(params,T_bc); % At time t
+        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        T_bc = apply_bc_temp(params,T_bc); % At time t+dt
+        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+    else
+        error("Too many inputs.")
     end
     
     %% Round 1
@@ -39,7 +66,7 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(t,rhs,T,T0,velocity)
     
     % Now construct the AX = B problem
     
-    A = eye(Nx) - 0.5 * Fo_t * LC;
+    A = eye(Nx) - 0.5 * params.Fo_t * LC;
     for j = 2:Ny+1
         B = rhs.x(2:Nx+1,j);
         a = zeros(length(A)-1,1);
@@ -79,7 +106,7 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(t,rhs,T,T0,velocity)
         end
     end
     
-    A = eye(Ny) - 0.5*Fo_t*LC;
+    A = eye(Ny) - 0.5 * params.Fo_t * LC;
     for j = 2:Nx+1
         B = rhs.x(2:Ny+1,j);
         a = zeros(length(A)-1,1);
@@ -105,14 +132,16 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(t,rhs,T,T0,velocity)
     
     T.x = T.x';
     
-    if nargin == 5
-        T = apply_bc_temp(T,T0,velocity);
+    if nargin == 6
+        T = apply_bc_temp(params,T,T0,velocity);
+    elseif nargin == 5
+        T = apply_bc_temp(params,T,T0);
     elseif nargin == 4
-        T = apply_bc_temp(T,T0);
-    elseif nargin == 3
-        T = apply_bc_temp(T);
+        T = apply_bc_temp(params,T);
+    else
+        error("Too many inputs.")
     end
     
-    t = t + dt;
+    t = t + params.dt;
     
 end

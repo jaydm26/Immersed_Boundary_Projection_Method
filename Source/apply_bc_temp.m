@@ -1,11 +1,10 @@
 function T = apply_bc_temp(params,T,T0,velocity)
-    %
-    % Applies Boundary Condtions of Inlet Temperature to the left wall, no
-    % temperature gradient on the top and bottom walls in the vertical
-    % direction, and outlet to the right wall of a data field stored in the
-    % Cell Space. This function is specifically created for temperature
-    % related problems in the Immersed Boundary Projection Method. Refer
-    % to the reference for further explanation.
+    %APPLY_BC_TEMP  Applies Boundary Condtions of Inlet Temperature to the 
+    % left wall, no temperature gradient on the top and bottom walls in the 
+    % vertical direction, and outlet to the right wall of a data field 
+    % stored in the Cell Space. This function is specifically created for 
+    % temperature related problems in the Immersed Boundary Projection 
+    % Method. Refer to the reference for further explanation.
     % 
     % This works for three cases:
     %
@@ -20,10 +19,14 @@ function T = apply_bc_temp(params,T,T0,velocity)
     % X-velocity field as the convecting velocity. Note that this is
     % unstable. *Do not use*
     %
+    % T = APPLY_BC_TEMP(params,T,T0,velocity)
+    %
     % Variable lookup:
     % 
     % T: Temperature field (CellData) on which the boundary conditions
     % are being applied.
+    %
+    % params: flow parameters.
     %
     % T0: Temperature field (CellData) from the previous time step. Used
     % to calculate the convective outlet boundary condition.

@@ -1,18 +1,33 @@
-function out = H_op(x,y,f)
+function op = H_op(params,xi,eta,x,y,ip)
+    %H_OP Regularizes the data from the Lagrangian points to the field.
+    % Refer to reference for further explanation.
+    %
+    % op = H_op(params,xi,eta,x,y,ip)
+    %
+    % Variable lookup:
+    %
+    % op: output on the flow field.
+    %
+    % params: flow parameters.
+    %
+    % xi: X-coordinate of the Lagrangian points.
+    %
+    % eta: Y-corrdinate of the Lagrangian points.
+    %
+    % x: X-coordinate of the flow field
+    %
+    % y: Y-coordinate of the flow field
+    %
+    % ip: input on the Lagrangian points.
     
-    global body_map dx
+    op = zeros(length(ip),1);
     
-    xi = body_map(:,1);
-    eta = body_map(:,2);
-    
-    out = zeros(length(f),1);
-    
-    for k = 1:length(f)
-        if f(k) == 0 || (x-xi(k))/dx > 1.5 || (y-eta(k))/dx > 1.5
-            out(k) = 0;
+    for k = 1:length(ip)
+        if ip(k) == 0 || (x-xi(k))/params.dx > 1.5 || (y-eta(k))/params.dx > 1.5
+            op(k) = 0;
         else
-            out(k) = f(k) * ddf_roma_2D(x-xi(k),y-eta(k));
+            op(k) = ip(k) * ddf_roma_2D(params,x-xi(k),y-eta(k));
         end
     end
-    out = sum(out);
+    op = sum(op);
 end
