@@ -21,6 +21,8 @@ function w = NodeData(Nx,Ny)
     % data: Refers the the data type for the structure.
     %
     % size: Refers to the size used to create the data field.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     %% Node Data Builder
     w = struct;

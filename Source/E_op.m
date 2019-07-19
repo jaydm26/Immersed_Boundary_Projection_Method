@@ -21,6 +21,8 @@ function op = E_op(params,domain,xi,eta,ip,dim)
     % dim: dimension along which the Edge field is operated.
     %   1: X field of the Edge Field
     %   2: Y field of the Edge Field
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = ip.size(1);
     Ny = ip.size(2);

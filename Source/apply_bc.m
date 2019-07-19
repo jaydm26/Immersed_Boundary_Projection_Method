@@ -43,6 +43,8 @@ function velocity = apply_bc(bc,velocity,t)
     %
     % vT: Boundary Condition on the top wall for velocity in the 
     % Y-direction.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = velocity.size(1);
     Ny = velocity.size(2);

@@ -19,6 +19,8 @@ function [x,y] = ECL_inv(params,domain,g_hat,xi,eta,gamma)
     % eta: Y-corrdinate of the Lagrangian points.
     %
     % gamma: input vorticity.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     sf = L_inv_operation(gamma,g_hat);
      

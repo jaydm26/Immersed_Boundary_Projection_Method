@@ -1,4 +1,7 @@
 function A = integrate(f)
+    %
+    % Created by Jay Mehta (18 July 2019)
+    
     switch f.data
         case 'cell'
             Nx = f.size(1);

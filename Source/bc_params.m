@@ -29,6 +29,8 @@ function bc = bc_params(uL,uR,uB,uT,vL,vR,vB,vT)
     %
     % vT: Boundary Condition on the top wall for velocity in the 
     % Y-direction.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     bc = struct;
     

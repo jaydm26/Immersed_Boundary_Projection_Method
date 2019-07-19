@@ -19,6 +19,8 @@ function op = H_op(params,xi,eta,x,y,ip)
     % y: Y-coordinate of the flow field
     %
     % ip: input on the Lagrangian points.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     op = zeros(length(ip),1);
     

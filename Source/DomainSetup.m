@@ -17,6 +17,8 @@ function [X,Y] = DomainSetup(params,domain,type)
     % X: Full Domain for X-direction
     %
     % Y: Full Domain for Y-direction
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     x0 = domain.x_range(1);
     x_max = domain.x_range(2);

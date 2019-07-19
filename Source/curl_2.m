@@ -10,6 +10,8 @@ function op = curl_2(ip)
     % ip: Input. Can be an Edge field or a Node field.
     %
     % op: output after taking curl of ip.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     switch ip.data 
         case 'edge' 

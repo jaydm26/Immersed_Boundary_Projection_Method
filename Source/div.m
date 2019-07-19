@@ -15,6 +15,8 @@ function op = div(ip,op,dim)
     % Ny: Number of divisions in the Y-direction.
     %
     % dim: dimension to operate on.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = ip.size(1);
     Ny = ip.size(2);

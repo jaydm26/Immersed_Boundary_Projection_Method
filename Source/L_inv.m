@@ -20,6 +20,8 @@ function g_hat = L_inv(domain,DataType)
     %
     % DataType: Type of L_inv operator- "cell" for Cell Space
     %                                   "node" for Node Space
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = domain.Nx;
     Ny = domain.Ny;

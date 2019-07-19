@@ -44,6 +44,8 @@ function gamma = apply_bc_sp(params,gamma,gamma0,velocity)
     %
     % Co: Courant Number defined by Co = U * dt / dx. Refer to reference
     % for further explanation.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     if nargin == 2 && gamma.data ~= "node"
         error("gamma is not a Node field.")

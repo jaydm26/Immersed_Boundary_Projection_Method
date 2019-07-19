@@ -18,6 +18,8 @@ function AX = afun(params,domain,g_hat,xi,eta,X)
     % domain: domain parameters
     %
     % g_hat: FFT2 of Lattice Green's Function.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     k = length(xi);
     Fx = X(1:k);

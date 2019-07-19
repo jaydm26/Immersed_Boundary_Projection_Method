@@ -20,6 +20,8 @@ function [t,velocity] = diffuse_dirichlet_cn_edge_xy(params,bc,t,rhs,velocity)
     % bc: Boundary conditions for the Edge Field.
     %
     % rhs: Right Hand Side (EdgeData) for the diffusion problem.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = velocity.size(1);
     Ny = velocity.size(2);

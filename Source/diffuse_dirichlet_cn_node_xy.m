@@ -23,6 +23,8 @@ function [t,gamma] = diffuse_dirichlet_cn_node_xy(params,t,rhs,gamma,gamma0,velo
     %
     % velocity: Current Velocity field (EdgeData). Used to calculate the
     % convective outlet boundary condition.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = gamma.size(1);
     Ny = gamma.size(2);

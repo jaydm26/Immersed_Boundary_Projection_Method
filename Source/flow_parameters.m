@@ -22,6 +22,8 @@ function params = flow_parameters(dx, dt, U, nu, Fo, Co, char_L, Fo_t)
     % for further explanation.
     % 
     % char_L: Characteristic length for the flow.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     params = struct;
     

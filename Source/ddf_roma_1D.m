@@ -4,6 +4,8 @@ function ddf = ddf_roma_1D(params,r)
     % delta function.
     %
     % ddf = ddf_roma_1D(r,params)
+    %
+    % Created by Jay Mehta (18 July 2019)
 
     r = abs(r/params.dx);
     if r < 0.5

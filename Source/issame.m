@@ -24,6 +24,8 @@ function [flag] = issame(A,B)
     % flag = issame(A,B);
     % 
     % flag = 0 for this case.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     [X1,Y1] = size(A);
     [X2,Y2] = size(B);

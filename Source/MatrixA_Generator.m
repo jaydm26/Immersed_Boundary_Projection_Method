@@ -21,6 +21,8 @@ function A = MatrixA_Generator(params,domain,g_hat,xi,eta,Type)
     %
     % Type: Flow variable to be solved- "vel" for velocity/vorticity field.
     %                                   "temp" for temperature field.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     switch Type
         case "vel"

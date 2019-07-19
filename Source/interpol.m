@@ -11,6 +11,8 @@ function op = interpol(ip,op,dim)
     % ip: input that has to be interpolated
     %
     % dim: dimension to interpolate over.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     if op.size ~= ip.size
         error("Data sizes do not match")

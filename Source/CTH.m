@@ -19,6 +19,8 @@ function op = CTH(params,domain,xi,eta,Fx,Fy)
     %
     % op: Result of the C^T H operation. H places data on the Edge
     % field. Curl of Edge field yields a Node field.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     q = H_operation(params,domain,"edge",xi,eta,Fx,Fy);
     

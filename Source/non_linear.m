@@ -11,6 +11,8 @@ function nlt = non_linear(params,domain,velocity)
     % domain: domain parameters.
     %
     % nlt: computed non-linear terms.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     %% Four terms to evaluate for d(uu) and d(vu) for X-direction
     

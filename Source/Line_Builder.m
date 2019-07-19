@@ -19,6 +19,8 @@ function [xi,eta,L,theta] = Line_Builder(params,xL,xR,yL,yR)
     % xL,yL: Starting coordinates of the line.
     %
     % xR,yR: Ending coordinates of the line.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     dx = params.dx;
     dy = params.dy;

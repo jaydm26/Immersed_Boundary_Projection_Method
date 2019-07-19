@@ -25,6 +25,8 @@ function u = smoothing(u,f,method,type,TypeVal)
     %
     % TypeVal: Value of the type variable. Controls the tolerance or number
     % of iterations.
+    %
+    % Created by Jay Mehta (18 July 2019)
      
     Nx = u.size(1);
     Ny = u.size(2);

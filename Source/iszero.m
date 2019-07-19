@@ -17,6 +17,8 @@ function [flag,n] = iszero(A)
     % [flag,n] = iszero(A);
     % 
     % This gives flag = 1 and n = 100
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     [x,y] = size(A);
     n = 0;

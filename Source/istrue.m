@@ -3,6 +3,8 @@ function flag = istrue(logic)
     % is false, flag = 0.
     %
     % flag = istrue(logic)
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     if logic
         flag = 1;

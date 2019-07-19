@@ -3,6 +3,8 @@ function domain = domain_parameters_init
     % domain parameters required for the flow.
     %
     % domain = domain_parameters
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     domain = domain_parameters([],[],[],[],[],[],[],[],[],[],[],[]);
 end

@@ -3,6 +3,8 @@ function A = dot_prod(f,g)
     % the same type.
     %
     % A = dot_prod(f,g)
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     % Check what data type:
     data1 = f.data;

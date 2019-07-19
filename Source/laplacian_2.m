@@ -12,6 +12,8 @@ function op = laplacian_2(ip,dir)
     %
     % dir: direction of the laplacian- 1: X-direction
     %                                  2: Y-direction
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     if nargin == 1
         switch ip.data

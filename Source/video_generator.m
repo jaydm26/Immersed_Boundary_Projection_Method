@@ -14,6 +14,8 @@ function video = video_generator(params,domain,filename,xi,eta,ip1,ip2)
     % xi, eta: X and Y coordinate of the Lagrangian points.
     %
     % ip1,ip2: input fields.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     X_n = domain.X_n;
     Y_n = domain.Y_n;

@@ -45,6 +45,8 @@ function T = apply_bc_temp(params,T,T0,velocity)
     %
     % Co: Courant Number defined by Co = U * dt / dx. Refer to reference
     % for further explanation.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     if T.data ~= "cell"
         error("T is not a Cell field.")

@@ -6,6 +6,8 @@ function op = stacker(ip)
     % ip: input field variable.
     %
     % op: output stacked column.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = ip.size(1);
     Ny = ip.size(2);

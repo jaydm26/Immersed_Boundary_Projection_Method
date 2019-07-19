@@ -23,6 +23,8 @@ function op = H_operation(params,domain,DataType,xi,eta,ip1,ip2)
     % eta: Y-corrdinate of the Lagrangian points.
     %
     % ip1, ip2: inputs on the Lagrangian points.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = domain.Nx;
     Ny = domain.Ny;

@@ -18,6 +18,8 @@ function [op1,op2] = E_operation(params,domain,xi,eta,ip)
     % eta: Y-corrdinate of the Lagrangian points.
     %
     % ip: input
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     switch ip.data
         case "node"

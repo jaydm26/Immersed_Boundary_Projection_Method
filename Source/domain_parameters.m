@@ -25,6 +25,8 @@ function domain = domain_parameters(X_c,Y_c,X_e_x,Y_e_x,X_e_y,Y_e_y,...
     %
     % y_range: minimum and maximum values of the Y-corrdinate in the
     % domain.
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     domain = struct;
     

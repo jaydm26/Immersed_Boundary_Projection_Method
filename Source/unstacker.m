@@ -14,6 +14,8 @@ function op = unstacker(domain,ip,type)
     % type: location of field variable- "cell" for Cell Space
     %                                   "edge" for Edge Space
     %                                   "node" for Node Space
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     Nx = domain.Nx;
     Ny = domain.Ny;

@@ -17,6 +17,8 @@ function AX = afun_temp(params,domain,xi,eta,X)
     % params: flow parameters
     %
     % domain: domain parameters
+    %
+    % Created by Jay Mehta (18 July 2019)
     
     HX = H_operation(params,domain,"cell",xi,eta,X);
     
