@@ -1,12 +1,30 @@
+%% Immersed Boundary Projection Method
+%
+% Code written by Jay Mehta (July 2019).
+% 
+% This code was initially developed as a part of a Numerical Methods for
+% Incompressible Flows class (MECH&AE 250H) at UCLA.
+% 
+% The code is developed from the works of Prof. Tim Colonius (CalTech),
+% Prof. Sam Taira (UCLA) and Prof. Jeff Eldredge (UCLA). Other authors have been
+% referenced when used.
+%
+% This code solves the problem for a viscous flow past a 2D cylinder.
+% Initally the code is about pre-processing to generate the domain and the
+% body. The middle part solves the equations. The trailing portion of the
+% code is for post-processing. Each part (up to solving the problem) has 
+% been explained in Taira, Colonius (JCP 2007) and Kajishima and Taira
+% (Springer, 2017).
+
 %% Clear Everything
 clear all
 clc
-rmpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source')
-rmpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source/dst_idst')
+rmpath('.../IBPM/Source')
+rmpath('.../IBPM/Source/dst_idst')
 
 %% Add Paths
-addpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source')
-addpath('/Users/jaymehta/Desktop/Research UCLA/IBPM/Source/dst_idst')
+addpath('.../IBPM/Source')
+addpath('.../IBPM/Source/dst_idst')
 %% Set up the problem domain and the problem object
 
 % Set up the parameters that have to be passed
@@ -45,7 +63,7 @@ domain.Y_e_y = Y_e_y;
 domain.X_c = X_c;
 domain.Y_c = Y_c;
 
-%% Create the L^-1 operator using Lattice Green's function
+%% Create the L^-1 operator using Lattice Green's function (Liska, Colonius, 2016)
 
 g_hat = L_inv(domain,"node");
 
@@ -212,7 +230,7 @@ for t = 2
     
 end
 
-%% CN-AB2 Inital
+%% CN-AB2
 
 for t = 3:length(time_range)
     

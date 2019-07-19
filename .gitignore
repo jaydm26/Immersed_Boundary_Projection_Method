@@ -3,3 +3,8 @@
 *.m~
 *.mat
 Papers/
+Bodies/Aerofoil
+Bodies/Flat Plate
+Bodies/Inclined Plate
+Bodies/Rectangle
+Unit Tests/
