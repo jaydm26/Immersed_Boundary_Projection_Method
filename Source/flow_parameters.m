@@ -1,4 +1,4 @@
-function params = flow_parameters(dx, dt, U, nu, Fo, Co, char_L, Fo_t)
+function params = flow_parameters(dx, dt, U, nu, alpha, Fo, Co, char_L, Fo_t)
     %FLOW_PARAMETERS Creates a params data structure which contains all 
     % important flow parameters.
     %
@@ -31,10 +31,10 @@ function params = flow_parameters(dx, dt, U, nu, Fo, Co, char_L, Fo_t)
     params.dt = dt;
     params.U = U;
     params.nu = nu;
+    params.alpha = alpha;
     params.Fo = Fo;
     params.Co = Co;
     params.char_L = char_L;
-    if nargin == 8
-        params.Fo_t = Fo_t;
-    end
+    params.Fo_t = Fo_t;
+    
 end

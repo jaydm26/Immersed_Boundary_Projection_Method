@@ -19,12 +19,12 @@
 %% Clear Everything
 clear all
 clc
-rmpath('.../IBPM/Source')
-rmpath('.../IBPM/Source/dst_idst')
+rmpath('Source')
+rmpath('Source/dst_idst')
 
 %% Add Paths
-addpath('.../IBPM/Source')
-addpath('.../IBPM/Source/dst_idst')
+addpath('Source')
+addpath('Source/dst_idst')
 %% Set up the problem domain and the problem object
 
 % Set up the parameters that have to be passed
@@ -33,13 +33,13 @@ params = flow_parameters_init;
 domain = domain_parameters_init;
 
 % Domain
-Nx = 64;
-Ny = 64;
+Nx = 32;
+Ny = 32;
 domain.Nx = Nx;
 domain.Ny = Ny;
 
-x_range = [-5 5];
-y_range = [-5 5];
+x_range = [-2.5 2.5];
+y_range = [-2.5 2.5];
 domain.x_range = x_range;
 domain.y_range = y_range;
 
@@ -91,7 +91,7 @@ end
 
 %% Forming the A matrix for PCG. Load it from the side bar
 
-A = MatrixA_Generator(params,domain,g_hat,xi,eta,"vel");
+A = MatrixA_Generator(params,domain,xi,eta,"vel",g_hat);
 
 %% Initializing the variables pre-solving
 
@@ -105,7 +105,7 @@ U = 1;
 V = 0;
 params.U = U;
 
-Re = 100;
+Re = 40;
 nu = U * R / Re;
 params.nu = nu;
 
@@ -115,6 +115,25 @@ dt = min([Fo * dx^2/nu,Co*dx]);
 params.dt = dt;
 
 Fo = nu * dt/dx^2;
+
+X_n = X_n';
+Y_n = Y_n';
+
+Fo_matrix = NodeData(Nx,Ny);
+for i = 1:Nx+1
+    for j = 1:Ny+1
+        if body_function(X_n(i,j),Y_n(i,j)) < 0
+            Fo_matrix.x(i,j) = 0;
+        else
+            Fo_matrix.x(i,j) = Fo;
+        end
+    end
+end
+
+X_n = X_n';
+Y_n = Y_n';
+
+Fo_matrix.x = Fo_matrix.x';
 Co = dt/dx;
 
 params.Fo = Fo;
@@ -152,13 +171,13 @@ for t = 2
     % Set up R1
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
-    nl = non_linear(params,domain,velocity);
+    nl = non_linear(params,velocity);
     nl = curl_2(nl);
     
     ff = CTH(params,domain,xi,eta,Fx,Fy);
     
     rhs1 = NodeData(Nx,Ny);
-    rhs1.x = Fo * diff_gamma.x - dt * nl.x + dt * ff.x;
+    rhs1.x = Fo_matrix.x * diff_gamma.x - dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -223,7 +242,7 @@ for t = 2
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
-    conv = 1/Nx * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
+    conv = 1/Nx * (norm(delta_gamma(2:Nx,2:Ny))/dt) / (norm(gamma.x(2:Nx,2:Ny))/dt);
     if conv <= tol
         break
     end
@@ -232,14 +251,14 @@ end
 
 %% CN-AB2
 
-for t = 3:length(time_range)
+for t = 3:250
     
     % Set up R1
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     rhs1 = NodeData(Nx,Ny);
     rhs1.x = dt * 0.5 * nl.x;
-    nl = non_linear(params,domain,velocity);
+    nl = non_linear(params,velocity);
     nl = curl_2(nl);
     
     ff = CTH(params,domain,xi,eta,Fx,Fy);

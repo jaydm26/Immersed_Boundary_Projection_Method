@@ -32,21 +32,27 @@ function [t,gamma] = diffuse_dirichlet_cn_node_xy(params,t,rhs,gamma,gamma0,velo
     if nargin == 6
         gamma_bc = NodeData(Nx,Ny);
         gamma_bc = apply_bc_sp(params,gamma_bc,gamma0,velocity); % At time t
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        diff_gamma_bc = laplacian_2(gamma_bc);
+        rhs.x = rhs.x + diff_gamma_bc.x * 0.5 * params.Fo;
         gamma_bc = apply_bc_sp(params,gamma_bc,gamma0,velocity); % At time t+dt
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        diff_gamma_bc = laplacian_2(gamma_bc);
+        rhs.x = rhs.x + diff_gamma_bc.x * 0.5 * params.Fo;
     elseif nargin == 5
         gamma_bc = NodeData(Nx,Ny);
         gamma_bc = apply_bc_sp(params,gamma_bc,gamma0); % At time t
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        diff_gamma_bc = laplacian_2(gamma_bc);
+        rhs.x = rhs.x + diff_gamma_bc.x * 0.5 * params.Fo;
         gamma_bc = apply_bc_sp(params,gamma_bc,gamma0); % At time t+dt
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        diff_gamma_bc = laplacian_2(gamma_bc);
+        rhs.x = rhs.x + diff_gamma_bc.x * 0.5 * params.Fo;
     elseif nargin == 4
         gamma_bc = NodeData(Nx,Ny);
         gamma_bc = apply_bc_sp(params,gamma_bc); % At time t
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        diff_gamma_bc = laplacian_2(gamma_bc);
+        rhs.x = rhs.x + diff_gamma_bc.x * 0.5 * params.Fo;
         gamma_bc = apply_bc_sp(params,gamma_bc); % At time t+dt
-        rhs.x = rhs.x + gamma_bc.x * 0.5 * params.Fo;
+        diff_gamma_bc = laplacian_2(gamma_bc);
+        rhs.x = rhs.x + diff_gamma_bc.x * 0.5 * params.Fo;
     end
     %% Round 1
     
@@ -91,6 +97,7 @@ function [t,gamma] = diffuse_dirichlet_cn_node_xy(params,t,rhs,gamma,gamma0,velo
     %% Round 2
     
     rhs.x = gamma.x';
+    gamma.x = gamma.x';
 
     LN = zeros(Ny-1,Ny-1);
     for i = 1:Ny-1

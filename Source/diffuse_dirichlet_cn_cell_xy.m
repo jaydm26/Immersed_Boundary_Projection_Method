@@ -32,21 +32,27 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(params,t,rhs,T,T0,velocity)
     if nargin == 6
         T_bc = CellData(Nx,Ny);
         T_bc = apply_bc_temp(params,T_bc,T0,velocity); % At time t
-        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        diff_T_bc = laplacian_2(T_bc);
+        rhs.x = rhs.x + diff_T_bc.x * 0.5 * params.Fo_t;
         T_bc = apply_bc_temp(params,T_bc,T0,velocity); % At time t+dt
-        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        diff_T_bc = laplacian(T_bc);
+        rhs.x = rhs.x + diff_T_bc.x * 0.5 * params.Fo_t;
     elseif nargin == 5
         T_bc = CellData(Nx,Ny);
         T_bc = apply_bc_temp(params,T_bc,T0); % At time t
-        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        diff_T_bc = laplacian_2(T_bc);
+        rhs.x = rhs.x + diff_T_bc.x * 0.5 * params.Fo_t;
         T_bc = apply_bc_temp(params,T_bc,T0); % At time t+dt
-        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        diff_T_bc = laplacian_2(T_bc);
+        rhs.x = rhs.x + diff_T_bc.x * 0.5 * params.Fo_t;
     elseif nargin == 4
         T_bc = CellData(Nx,Ny);
         T_bc = apply_bc_temp(params,T_bc); % At time t
-        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        diff_T_bc = laplacian_2(T_bc);
+        rhs.x = rhs.x + diff_T_bc.x * 0.5 * params.Fo_t;
         T_bc = apply_bc_temp(params,T_bc); % At time t+dt
-        rhs.x = rhs.x + T_bc.x * 0.5 * params.Fo_t;
+        diff_T_bc = laplacian_2(T_bc);
+        rhs.x = rhs.x + diff_T_bc.x * 0.5 * params.Fo_t;
     else
         error("Too many inputs.")
     end
@@ -94,6 +100,7 @@ function [t,T] = diffuse_dirichlet_cn_cell_xy(params,t,rhs,T,T0,velocity)
     %% Round 2
     
     rhs.x = T.x';
+    T.x = T.x';
 
     LC = zeros(Ny,Ny);
     for i = 1:Ny

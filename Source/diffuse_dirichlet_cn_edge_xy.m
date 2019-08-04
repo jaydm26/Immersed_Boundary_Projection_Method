@@ -28,11 +28,13 @@ function [t,velocity] = diffuse_dirichlet_cn_edge_xy(params,bc,t,rhs,velocity)
     
     velocity_bc = EdgeData(Nx,Ny);
     velocity_bc = apply_bc(bc,velocity_bc,t);
-    rhs.x = rhs.x + velocity_bc.x * 0.5 * params.Fo;
-    rhs.y = rhs.y + velocity_bc.y * 0.5 * params.Fo;
+    diff_vel_bc = laplacian_2(velocity_bc);
+    rhs.x = rhs.x + diff_vel_bc.x * 0.5 * params.Fo;
+    rhs.y = rhs.y + diff_vel_bc.y * 0.5 * params.Fo;
     velocity_bc = apply_bc(bc,velocity_bc,t);
-    rhs.x = rhs.x + velocity_bc.x * 0.5 * params.Fo;
-    rhs.y = rhs.y + velocity_bc.y * 0.5 * params.Fo;
+    diff_vel_bc = laplacian_2(velocity_bc);
+    rhs.x = rhs.x + diff_vel_bc.x * 0.5 * params.Fo;
+    rhs.y = rhs.y + diff_vel_bc.y * 0.5 * params.Fo;
     
     %% For X-direction
     LE = zeros(Nx-1,Nx-1);

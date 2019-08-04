@@ -48,6 +48,8 @@ function g_hat = L_inv(domain,DataType)
             j_center = Ny/2 + 1;
 
             g_0 = NodeData(Nx,Ny);
+            X_n2 = X_n2';
+            Y_n2 = Y_n2';
             % Define boundaries of g_0 using the Green's Function for Laplace in 2D
             G = @(x,y) 1/(4*pi) * log(x^2+y^2);
 
@@ -85,6 +87,8 @@ function g_hat = L_inv(domain,DataType)
             j_center = Ny/2 + 1;
 
             g_0 = CellData(Nx,Ny);
+            X_c2 = X_c2';
+            Y_c2 = Y_c2';
             % Define boundaries of g_0 using the Green's Function for Laplace in 2D
             G = @(x,y) 1/(4*pi) * log(x^2+y^2);
 

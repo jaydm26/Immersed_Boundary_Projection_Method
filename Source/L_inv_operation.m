@@ -16,7 +16,7 @@ function u = L_inv_operation(f,g_hat)
     % Created by Jay Mehta (18 July 2019)
     
     Nx = f.size(1);
-    Ny = f.size(1);
+    Ny = f.size(2);
     
     switch f.data
         case "node"

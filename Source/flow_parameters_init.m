@@ -6,5 +6,5 @@ function params = flow_parameters_init
     %
     % Created by Jay Mehta (18 July 2019)
     
-    params = flow_parameters([], [], [], [], [], [], [], []);
+    params = flow_parameters([], [], [], [], [], [], [], [], []);
 end

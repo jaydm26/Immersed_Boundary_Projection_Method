@@ -34,8 +34,8 @@ params = flow_parameters_init;
 domain = domain_parameters_init;
 
 % Domain
-Nx = 64;
-Ny = 64;
+Nx = 32;
+Ny = 32;
 domain.Nx = Nx;
 domain.Ny = Ny;
 
@@ -92,7 +92,7 @@ end
 
 %% Forming the A matrix for PCG. Load it from the side bar
 
-A = MatrixA_Generator(params,domain,g_hat,xi,eta,"vel");
+A = MatrixA_Generator(params,domain,xi,eta,"vel",g_hat);
 
 %% Initializing the variables pre-solving
 
@@ -110,12 +110,30 @@ Re = 100;
 nu = U * R / Re;
 params.nu = nu;
 
-Co = 0.1;
+Co = 1e-1;
 Fo = 5;
 dt = min([Fo * dx^2/nu,Co*dx]);
 params.dt = dt;
 
 Fo = nu * dt/dx^2;
+
+X_n = X_n';
+Y_n = Y_n';
+
+Fo_matrix = NodeData(Nx,Ny);
+for i = 1:Nx+1
+    for j = 1:Ny+1
+        if body_function(X_n(i,j),Y_n(i,j)) < 0
+            Fo_matrix.x(i,j) = 0;
+        else
+            Fo_matrix.x(i,j) = Fo;
+        end
+    end
+end
+
+X_n = X_n';
+Y_n = Y_n';
+
 Co = dt/dx;
 
 params.Fo = Fo;
@@ -128,11 +146,11 @@ time_range = 0:dt:tf;
 %% Pre-Setup
 
 velocity = EdgeData(Nx,Ny); % Velocity Field
-velocity_x_log = zeros(length(time_range),Nx+1,Ny+2);
-velocity_y_log = zeros(length(time_range),Nx+2,Ny+1);
-sf_log = zeros(length(time_range),Nx+1,Ny+1);
-gamma_log = zeros(length(time_range),Nx+1,Ny+1);
-velocity_stack = zeros(((Nx+1)*(Ny+2) + (Nx+2)*(Ny+1)),length(time_range));
+% velocity_x_log = zeros(length(time_range),Nx+1,Ny+2);
+% velocity_y_log = zeros(length(time_range),Nx+2,Ny+1);
+% sf_log = zeros(length(time_range),Nx+1,Ny+1);
+% gamma_log = zeros(length(time_range),Nx+1,Ny+1);
+% velocity_stack = zeros(((Nx+1)*(Ny+2) + (Nx+2)*(Ny+1)),length(time_range));
 gamma = NodeData(Nx,Ny); % Vorticity
 Fx = zeros(length(xi),1);
 Fy = zeros(length(eta),1);
@@ -153,13 +171,13 @@ for t = 2
     % Set up R1
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
-    nl = non_linear(params,domain,velocity);
+    nl = non_linear(params,velocity);
     nl = curl_2(nl);
     
     ff = CTH(params,domain,xi,eta,Fx,Fy);
     
     rhs1 = NodeData(Nx,Ny);
-    rhs1.x = Fo * diff_gamma.x - dt * nl.x + dt * ff.x;
+    rhs1.x = Fo_matrix.x .* diff_gamma.x - dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -216,11 +234,11 @@ for t = 2
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-    sf_log(t,:,:) = sf.x;
-    gamma_log(t,:,:) = gamma.x;
-    velocity_x_log(t,:,:) = velocity.x;
-    velocity_y_log(t,:,:) = velocity.y;
-    velocity_stack(:,t) = stacker(velocity);
+%     sf_log(t,:,:) = sf.x;
+%     gamma_log(t,:,:) = gamma.x;
+%     velocity_x_log(t,:,:) = velocity.x;
+%     velocity_y_log(t,:,:) = velocity.y;
+%     velocity_stack(:,t) = stacker(velocity);
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
@@ -233,19 +251,19 @@ end
 
 %% CN-AB2 Inital
 
-for t = 3:25
+for t = 3:500
     
     % Set up R1
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     rhs1 = NodeData(Nx,Ny);
     rhs1.x = dt * 0.5 * nl.x;
-    nl = non_linear(params,domain,velocity);
+    nl = non_linear(params,velocity);
     nl = curl_2(nl);
     
     ff = CTH(params,domain,xi,eta,Fx,Fy);
     
-    rhs1.x = rhs1.x + Fo * diff_gamma.x - 1.5 * dt * nl.x + dt * ff.x;
+    rhs1.x = rhs1.x + Fo_matrix.x .* diff_gamma.x - 1.5 * dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -300,35 +318,35 @@ for t = 3:25
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-    sf_log(t,:,:) = sf.x;
-    gamma_log(t,:,:) = gamma.x;
-    velocity_x_log(t,:,:) = velocity.x;
-    velocity_y_log(t,:,:) = velocity.y;
-    velocity_stack(:,t) = stacker(velocity);
+%     sf_log(t,:,:) = sf.x;
+%     gamma_log(t,:,:) = gamma.x;
+%     velocity_x_log(t,:,:) = velocity.x;
+%     velocity_y_log(t,:,:) = velocity.y;
+%     velocity_stack(:,t) = stacker(velocity);
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
     conv = 1/Nx * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
     if conv <= tol
-        sf_log = sf_log(1:t,:,:);
-        gamma_log = gamma_log(1:t,:,:);
-        velocity_x_log = velocity_x_log(1:t,:,:);
-        velocity_y_log = velocity_y_log(1:t,:,:);
-        velocity_stack = velocity_stack(:,1:t);
+%         sf_log = sf_log(1:t,:,:);
+%         gamma_log = gamma_log(1:t,:,:);
+%         velocity_x_log = velocity_x_log(1:t,:,:);
+%         velocity_y_log = velocity_y_log(1:t,:,:);
+%         velocity_stack = velocity_stack(:,1:t);
         break
     end
 end
 
 %% CN-AB2 Shedding
 
-for t = 26:4096
+for t = 25:2048
     
     % Set up R1
     gamma0 = gamma;
     diff_gamma = laplacian_2(gamma);
     rhs1 = NodeData(Nx,Ny);
     rhs1.x = dt * 0.5 * nl.x;
-    nl = non_linear(params,domain,velocity);
+    nl = non_linear(params,velocity);
     nl = curl_2(nl);
     
     ff = CTH(params,domain,xi,eta,Fx,Fy);
@@ -360,8 +378,8 @@ for t = 26:4096
     delta_f_y = delta_f(length(xi)+1:end);
     
     % Adding an unstable component
-    delta_f_x(3) = delta_f_x(3) + 10;
-    delta_f_y(3) = delta_f_y(3) + 10;
+    delta_f_x(3) = delta_f_x(3) + 100;
+    delta_f_y(3) = delta_f_y(3) + 100;
     
     % Now we correct for the vorticity to ensure we have no slip on the body
     
@@ -392,23 +410,23 @@ for t = 26:4096
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-    sf_log(t,:,:) = sf.x;
-    gamma_log(t,:,:) = gamma.x;
-    velocity_x_log(t,:,:) = velocity.x;
-    velocity_y_log(t,:,:) = velocity.y;
-    velocity_stack(:,t) = stacker(velocity);
+%     sf_log(t,:,:) = sf.x;
+%     gamma_log(t,:,:) = gamma.x;
+%     velocity_x_log(t,:,:) = velocity.x;
+%     velocity_y_log(t,:,:) = velocity.y;
+%     velocity_stack(:,t) = stacker(velocity);
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
     conv = 1/Nx * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
-    if conv <= tol
-        sf_log = sf_log(1:t,:,:);
-        gamma_log = gamma_log(1:t,:,:);
-        velocity_x_log = velocity_x_log(1:t,:,:);
-        velocity_y_log = velocity_y_log(1:t,:,:);
-        velocity_stack = velocity_stack(:,1:t);
-        break
-    end
+%     if conv <= tol
+%         sf_log = sf_log(1:t,:,:);
+%         gamma_log = gamma_log(1:t,:,:);
+%         velocity_x_log = velocity_x_log(1:t,:,:);
+%         velocity_y_log = velocity_y_log(1:t,:,:);
+%         velocity_stack = velocity_stack(:,1:t);
+%         break
+%     end
 end
 
 % Log Clean Up
@@ -423,12 +441,14 @@ velocity_stack = velocity_stack(:,1:t);
 xi1 = [xi;xi(1)];
 eta1 = [eta;eta(1)];
 f1 = figure;
-contour(X_n./(2*R),Y_n./(2*R),(sf.x'))
+contour(X_n./(2*R),Y_n./(2*R),(sf.x'),0:0.5:10)
 hold on
+contour(X_n./(2*R),Y_n./(2*R),(sf.x'),-10:0.5:0,'--')
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
-pbaspect([1 1 1])
-title(strcat('Streamlines for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)));
+pbaspect([1 (y_range(2)-y_range(1))/(x_range(2)-x_range(1)) 1])
+title(strcat('Streamlines for a Cylinder of Diameter = '...
+    ,num2str(2*R),' in a flow of uniform velocity of U = ',num2str(U)));
 xlabel("X/D")
 ylabel("Y/D")
 f1.WindowState = 'fullscreen';
@@ -442,8 +462,9 @@ contour(X_n./(2*R),Y_n./(2*R),(gamma.x'))
 hold on
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
-pbaspect([1 1 1])
-title({'Streamlines for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)})
+pbaspect([1 (y_range(2)-y_range(1))/(x_range(2)-x_range(1)) 1])
+title(strcat('Vorticity for a Cylinder of Diameter = '...
+    ,num2str(2*params.char_L),' in a flow of uniform velocity of U = ',num2str(U)));
 xlabel("X/D")
 ylabel("Y/D")
 f1.WindowState = 'fullscreen';
@@ -460,8 +481,9 @@ quiver(X_n./(2*R),Y_n./(2*R),qx.x',qy.x');
 hold on
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
-pbaspect([1 1 1])
-title({'Velocity for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)})
+pbaspect([1 (y_range(2)-y_range(1))/(x_range(2)-x_range(1)) 1])
+title(strcat('Velocity for a Cylinder of Diameter = '...
+    ,num2str(2*params.char_L),' in a flow of uniform velocity of U = ',num2str(U)));
 xlabel("X/D")
 ylabel("Y/D")
 axis tight
@@ -469,12 +491,12 @@ f4.WindowState = 'fullscreen';
 
 %% Video Generator
 
-video = video_generator(params,domain,"von-karman street",xi,eta,sf_log);
+video = video_generator(params,domain,"von-karman street_long",xi,eta,sf_log);
 
 %% Shedding Frequency
 
-fre = 1/dt * (2:t)/t;
-fft_vel = mean(real(fft(transpose(velocity_stack(:,2:4096)))),2);
+fre = 1/dt * (1:t-26)/(t-26);
+fft_vel = mean(real(fft(transpose(velocity_stack(:,26:t)))),2);
 plot(fre(2:22),fft_vel(2:22)) % Looking for a low frequency peak
 
 %% Principal Orthogonal Decomposition

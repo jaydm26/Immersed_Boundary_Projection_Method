@@ -3,7 +3,7 @@ function [op1,op2] = E_operation(params,domain,xi,eta,ip)
     % field on to the Lagrangian points. Refer to reference for further 
     % explanation.
     %
-    % [op1,op2] = E_operation(params,domain,xi,eta,ip,DataType)
+    % [op1,op2] = E_operation(params,domain,xi,eta,ip)
     %
     % Variable lookup:
     %

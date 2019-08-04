@@ -1,9 +1,9 @@
-function A = MatrixA_Generator(params,domain,g_hat,xi,eta,Type)
+function A = MatrixA_Generator(params,domain,xi,eta,Type,g_hat)
     %MATRIXA_GENERATOR Creates the matrix A which is used to replace 
     % ECL^-1(EC)^T or EE^T matrix used to speed up the conjugate gradient 
     % solution.
     %
-    % A = MatrixA_Generator(params,domain,g_hat,xi,eta,Type)
+    % A = MatrixA_Generator(params,domain,xi,eta,Type,g_hat)
     %
     % Variable lookup:
     %

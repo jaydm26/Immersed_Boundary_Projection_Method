@@ -48,13 +48,13 @@ function T = apply_bc_temp(params,T,T0,velocity)
     %
     % Created by Jay Mehta (18 July 2019)
     
-    if T.data ~= "cell"
-        error("T is not a Cell field.")
+    if nargin == 2 && T.data ~= "cell"
+        error("T is not a Node field.")
     end
-    if T0.data ~= "cell"
+    if nargin == 3 && T0.data ~= "cell"
         error("T0 is not a Cell field.")
     end
-    if velocity.data ~= "edge"
+    if nargin == 4 && velocity.data ~= "edge"
         error("velocity is not an Edge field.")
     end
     
@@ -63,28 +63,28 @@ function T = apply_bc_temp(params,T,T0,velocity)
     
     switch nargin
         case 2
-            T.x(:,1) = 0;
-            T.x(1,2:Ny+1) = T.x(2,2:Ny+1);
-            T.x(Nx+2,2:Ny+1) = T.x(Nx+1,2:Ny+1);
-            T.x(:,Ny+2) = 0;
+            T.x(1,:) = 0; % Left
+            T.x(2:Nx+1,1) = T.x(2:Nx+1,2); % Bottom
+            T.x(2:Nx+1,Ny+2) = T.x(2:Nx+1,Ny+1); % Top
+            T.x(Nx+2,:) = 0; % Right
         case 3
             T.x(:,1) = 0;
-            T.x(1,2:Ny+1) = T.x(2,2:Ny+1);
-            T.x(Nx+2,2:Ny+1) = T.x(Nx+1,2:Ny+1);
-            for i = 1:Nx+2
-                for j = Ny+2
-                    T.x(i,j) = T0.x(i,j) - params.Co * (T0.x(i,j)-T0.x(i,j-1));
+            T.x(2:Nx+1,1) = T.x(2:Nx+1,2);
+            T.x(2:Nx+1,Ny+2) = T.x(2:Nx+1,Ny+1);
+            for i = Nx+2
+                for j = 2:Ny+1
+                    T.x(i,j) = T0.x(i,j) - params.Co * (T0.x(i,j)-T0.x(i-1,j));
                 end
             end
         case 4
             T.x(:,1) = 0;
-            T.x(1,2:Ny+1) = T.x(2,2:Ny+1);
-            T.x(Nx+2,2:Ny+1) = T.x(Nx+1,2:Ny+1);
-            U_inf = interpol(NodeData(Nx,Ny),velocity,1);
+            T.x(2:Nx+1,1) = T.x(2:Nx+1,2);
+            T.x(2:Nx+1,Ny+2) = T.x(2:Nx+1,Ny+1);
+            U_inf = interpol(CellData(Nx,Ny),velocity,1);
             U_inf = U_inf.x';
-            for i = 1:Nx+2
-                for j = Ny+2
-                    T.x(i,j) = T0.x(i,j) - U_inf(i,j-1) * params.dt/params.dx * (T0.x(i,j)-T0.x(i,j-1));
+            for i = Nx+2
+                for j = 2:Ny+1
+                    T.x(i,j) = T0.x(i,j) - U_inf(i,j-1) * params.dt/params.dx * (T0.x(i,j)-T0.x(i-1,j));
                 end
             end
     end
