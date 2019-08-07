@@ -20,7 +20,7 @@ function AX = afun_temp(params,domain,xi,eta,X)
     %
     % Created by Jay Mehta (18 July 2019)
     
-    HX = H_operation(params,domain,"cell",xi,eta,X);
+    HX = H_operation(params,domain,"edge",xi,eta,X,zeros(length(eta),1));
     
     AX = E_operation(params,domain,xi,eta,HX);
 end
