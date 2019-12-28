@@ -162,15 +162,15 @@ AT = MatrixA_Generator(params,domain,xi,eta,"temp");
 % discretization, and then use the Block LU Decomposition. This will allow
 % us to use the delta formulation.
 
-U = 2.25;
+U = 1;
 V = 0;
 params.U = U;
 
-Re = 3400;
+Re = 40;
 nu = U * char_L / Re;
 params.nu = nu;
 
-Pr = 0.71;
+Pr = 1;
 alpha = nu/Pr;
 params.alpha = alpha;
 
@@ -212,27 +212,6 @@ Lift = 0;
 rhs1 = NodeData(Nx,Ny);
 rhs3 = EdgeData(Nx,Ny);
 
-%% Some weighting matrices
-
-wT = EdgeData(Nx,Ny);
-X_e_x_ = X_e_x';
-Y_e_x_ = Y_e_x';
-X_e_y_ = X_e_y';
-Y_e_y_ = Y_e_y';
-for i = 1:Nx+1
-    for j = 1:Ny+2
-        if body_function(X_e_x_(i,j),Y_e_x_(i,j)) > 0
-            wT.x(i,j) = 1;
-        end
-    end
-end
-for i = 1:Nx+2
-    for j = 1:Ny+1
-        if body_function(X_e_y_(i,j),Y_e_y_(i,j)) > 0
-            wT.y(i,j) = 1;
-        end
-    end
-end
 %% Boundary Conditions on Gamma
 
 gamma0 = gamma;
@@ -322,8 +301,8 @@ for t = 2
     fT = H_operation(params,domain,"edge",xi,eta,FTX,FTY);
     
     rhs3 = CellData(Nx,Ny);
-    rhs3.x = Fo_t * diff_T.x - dt * wT.x .* nlt.x + dt * fT.x;
-    rhs3.y = Fo_t * diff_T.y - dt * wT.y .* nlt.y + dt * fT.y;
+    rhs3.x = Fo_t * diff_T.x - dt .* nlt.x + dt * fT.x;
+    rhs3.y = Fo_t * diff_T.y - dt .* nlt.y + dt * fT.y;
     
     % Solve the diffusion problem
     
@@ -362,7 +341,7 @@ end
 
 %% CN-AB2 Initial
 
-for t = 1001:10000
+for t = 3:200
     
     % Set up R1
     gamma0 = gamma;
@@ -432,14 +411,14 @@ for t = 1001:10000
     % Solving for the temperature field
     
     % Set R3
-    rhs3.x = 0.5 * dt * wT.x .* nlt.x;
+    rhs3.x = 0.5 * dt .* nlt.x;
     diff_T = laplacian_2(T);
     nlt = non_linear_temp(params,velocity0,T);
     
     fT = H_operation(params,domain,"edge",xi,eta,FTX,FTY);
     
-    rhs3.x = rhs3.x + Fo_t * diff_T.x - 1.5 * dt * wT.x .* nlt.x + dt * fT.x;
-    rhs3.y = rhs3.y + Fo_t * diff_T.y - 1.5 * dt * wT.y .* nlt.y + dt * fT.y;
+    rhs3.x = rhs3.x + Fo_t * diff_T.x - 1.5 * dt .* nlt.x + dt * fT.x;
+    rhs3.y = rhs3.y + Fo_t * diff_T.y - 1.5 * dt .* nlt.y + dt * fT.y;
     
     % Solve the diffusion problem
     

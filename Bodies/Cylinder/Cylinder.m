@@ -81,12 +81,13 @@ d_theta = 2*pi/N_theta;
 
 theta_range = 0:d_theta:2*pi-d_theta;
 
-xi = zeros(length(theta_range),1);
-eta = zeros(length(theta_range),1);
+[xi,eta,sin_vector,cos_vector] = deal(zeros(length(theta_range),1));
 
 for i = 1:length(theta_range)
     xi(i) = xc + R*cos(theta_range(i));
     eta(i) = yc + R*sin(theta_range(i));
+    sin_vector(i) = sin(theta_range(i));
+    cos_vector(i) = cos(theta_range(i));
 end
 
 %% Forming the A matrix for PCG. Load it from the side bar
@@ -109,31 +110,12 @@ Re = 40;
 nu = U * R / Re;
 params.nu = nu;
 
-Co = 0.1;
+Co = 0.25;
 Fo = 5;
 dt = min([Fo * dx^2/nu,Co*dx]);
 params.dt = dt;
 
 Fo = nu * dt/dx^2;
-
-X_n = X_n';
-Y_n = Y_n';
-
-Fo_matrix = NodeData(Nx,Ny);
-for i = 1:Nx+1
-    for j = 1:Ny+1
-        if body_function(X_n(i,j),Y_n(i,j)) < 0
-            Fo_matrix.x(i,j) = 0;
-        else
-            Fo_matrix.x(i,j) = Fo;
-        end
-    end
-end
-
-X_n = X_n';
-Y_n = Y_n';
-
-Fo_matrix.x = Fo_matrix.x';
 Co = dt/dx;
 
 params.Fo = Fo;
@@ -156,6 +138,8 @@ Fx = zeros(length(xi),1);
 Fy = zeros(length(eta),1);
 ub = zeros(length(xi),1); % X-component of Velocity on the body
 vb = zeros(length(eta),1); % Y-component of Velocity on the body
+% ub = - (2*pi)/(2*pi) * sin_vector;
+% vb = (2*pi)/(2*pi) * cos_vector;
 sf = NodeData(Nx,Ny);
 tol = 1e-1;
 Drag = 0;
@@ -177,7 +161,7 @@ for t = 2
     ff = CTH(params,domain,xi,eta,Fx,Fy);
     
     rhs1 = NodeData(Nx,Ny);
-    rhs1.x = Fo_matrix.x * diff_gamma.x - dt * nl.x + dt * ff.x;
+    rhs1.x = Fo * diff_gamma.x - dt * nl.x + dt * ff.x;
     
     % Solve the diffusion problem
     
@@ -191,8 +175,11 @@ for t = 2
     
     % Forming the two rhs2's
     
-    rhs2_x = ub - U * ones(length(xi),1) + ub2;
+    rhs2_x = ub - U * ones(length(xi),1)  + ub2;
     rhs2_y = vb - V * ones(length(eta),1) + vb2;
+
+%     rhs2_x = ub + ub2;
+%     rhs2_y = vb + vb2;
     
     rhs2 = [rhs2_x;rhs2_y];
     % Now obtain the delta_f in the two directions by pcg
@@ -277,7 +264,10 @@ for t = 3:250
     
     rhs2_x = ub - U * ones(length(xi),1) + ub2;
     rhs2_y = vb - V * ones(length(eta),1) + vb2;
-    
+
+%     rhs2_x = ub + ub2;
+%     rhs2_y = vb + vb2;
+
     rhs2 = [rhs2_x;rhs2_y];
     % Now obtain the delta_f in the two directions by pcg
     delta_f = pcg(A, rhs2, 1e-1,40);
@@ -316,7 +306,7 @@ for t = 3:250
     Hq = H_operation(params,domain,"edge",xi,eta,Fx,Fy);
     
     Drag(t) = -sum(sum(Hq.x))*dx^2;
-    Lift(t) = sum(sum(Hq.y))*dx^2;
+    Lift(t) = -sum(sum(Hq.y))*dx^2;
     
     sf_log(t,:,:) = sf.x;
     gamma_log(t,:,:) = gamma.x;
@@ -342,7 +332,7 @@ end
 xi1 = [xi;xi(1)];
 eta1 = [eta;eta(1)];
 f1 = figure;
-contour(X_n./(2*R),Y_n./(2*R),(sf.x'))
+contour(X_n./(2*R),Y_n./(2*R),(sf.x'),50)
 hold on
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
@@ -362,7 +352,7 @@ hold on
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
 pbaspect([1 1 1])
-title({'Streamlines for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)})
+title(strcat('Streamlines for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)))
 xlabel("X/D")
 ylabel("Y/D")
 f1.WindowState = 'fullscreen';
@@ -380,7 +370,7 @@ hold on
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
 pbaspect([1 1 1])
-title({'Velocity for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)})
+title(strcat('Velocity for a Flat Plate of D = ',num2str(2*R),' flow is of uniform velocity of U = ',num2str(U)))
 xlabel("X/D")
 ylabel("Y/D")
 axis tight

@@ -34,12 +34,12 @@ params = flow_parameters_init;
 domain = domain_parameters_init;
 
 % Domain
-Nx = 32;
-Ny = 32;
+Nx = 64*3;
+Ny = 64;
 domain.Nx = Nx;
 domain.Ny = Ny;
 
-x_range = [-5 5];
+x_range = [-5 25];
 y_range = [-5 5];
 domain.x_range = x_range;
 domain.y_range = y_range;
@@ -146,11 +146,11 @@ time_range = 0:dt:tf;
 %% Pre-Setup
 
 velocity = EdgeData(Nx,Ny); % Velocity Field
-% velocity_x_log = zeros(length(time_range),Nx+1,Ny+2);
-% velocity_y_log = zeros(length(time_range),Nx+2,Ny+1);
-% sf_log = zeros(length(time_range),Nx+1,Ny+1);
-% gamma_log = zeros(length(time_range),Nx+1,Ny+1);
-% velocity_stack = zeros(((Nx+1)*(Ny+2) + (Nx+2)*(Ny+1)),length(time_range));
+velocity_x_log = zeros(length(time_range),Nx+1,Ny+2);
+velocity_y_log = zeros(length(time_range),Nx+2,Ny+1);
+sf_log = zeros(length(time_range),Nx+1,Ny+1);
+gamma_log = zeros(length(time_range),Nx+1,Ny+1);
+velocity_stack = zeros(((Nx+1)*(Ny+2) + (Nx+2)*(Ny+1)),length(time_range));
 gamma = NodeData(Nx,Ny); % Vorticity
 Fx = zeros(length(xi),1);
 Fy = zeros(length(eta),1);
@@ -234,11 +234,11 @@ for t = 2
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-%     sf_log(t,:,:) = sf.x;
-%     gamma_log(t,:,:) = gamma.x;
-%     velocity_x_log(t,:,:) = velocity.x;
-%     velocity_y_log(t,:,:) = velocity.y;
-%     velocity_stack(:,t) = stacker(velocity);
+    sf_log(t,:,:) = sf.x;
+    gamma_log(t,:,:) = gamma.x;
+    velocity_x_log(t,:,:) = velocity.x;
+    velocity_y_log(t,:,:) = velocity.y;
+    velocity_stack(:,t) = stacker(velocity);
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
@@ -251,7 +251,7 @@ end
 
 %% CN-AB2 Inital
 
-for t = 3:500
+for t = 3:25
     
     % Set up R1
     gamma0 = gamma;
@@ -318,28 +318,28 @@ for t = 3:500
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-%     sf_log(t,:,:) = sf.x;
-%     gamma_log(t,:,:) = gamma.x;
-%     velocity_x_log(t,:,:) = velocity.x;
-%     velocity_y_log(t,:,:) = velocity.y;
-%     velocity_stack(:,t) = stacker(velocity);
+    sf_log(t,:,:) = sf.x;
+    gamma_log(t,:,:) = gamma.x;
+    velocity_x_log(t,:,:) = velocity.x;
+    velocity_y_log(t,:,:) = velocity.y;
+    velocity_stack(:,t) = stacker(velocity);
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
     conv = 1/Nx * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
     if conv <= tol
-%         sf_log = sf_log(1:t,:,:);
-%         gamma_log = gamma_log(1:t,:,:);
-%         velocity_x_log = velocity_x_log(1:t,:,:);
-%         velocity_y_log = velocity_y_log(1:t,:,:);
-%         velocity_stack = velocity_stack(:,1:t);
+        sf_log = sf_log(1:t,:,:);
+        gamma_log = gamma_log(1:t,:,:);
+        velocity_x_log = velocity_x_log(1:t,:,:);
+        velocity_y_log = velocity_y_log(1:t,:,:);
+        velocity_stack = velocity_stack(:,1:t);
         break
     end
 end
 
 %% CN-AB2 Shedding
 
-for t = 25:2048
+for t = 501:2000
     
     % Set up R1
     gamma0 = gamma;
@@ -410,11 +410,11 @@ for t = 25:2048
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-%     sf_log(t,:,:) = sf.x;
-%     gamma_log(t,:,:) = gamma.x;
-%     velocity_x_log(t,:,:) = velocity.x;
-%     velocity_y_log(t,:,:) = velocity.y;
-%     velocity_stack(:,t) = stacker(velocity);
+    sf_log(t,:,:) = sf.x;
+    gamma_log(t,:,:) = gamma.x;
+    velocity_x_log(t,:,:) = velocity.x;
+    velocity_y_log(t,:,:) = velocity.y;
+    velocity_stack(:,t) = stacker(velocity);
     
     % Checking the residual for each step and breaking the loop if convergence has reached
     
@@ -441,9 +441,9 @@ velocity_stack = velocity_stack(:,1:t);
 xi1 = [xi;xi(1)];
 eta1 = [eta;eta(1)];
 f1 = figure;
-contour(X_n./(2*R),Y_n./(2*R),(sf.x'),0:0.5:10)
+contour(X_n./(2*R),Y_n./(2*R),(sf.x'),25)
 hold on
-contour(X_n./(2*R),Y_n./(2*R),(sf.x'),-10:0.5:0,'--')
+% contour(X_n./(2*R),Y_n./(2*R),(sf.x'),'--')
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
 pbaspect([1 (y_range(2)-y_range(1))/(x_range(2)-x_range(1)) 1])

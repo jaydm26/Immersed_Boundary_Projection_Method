@@ -406,13 +406,20 @@ end
 xi_plot = [xi;xi(1)];
 eta_plot = [eta;eta(1)];
 f1 = figure;
-contour(X_n./(char_L),Y_n./(char_L),(sf.x'))
+sf_temp = sf;
+for i = 1:Nx+1
+    for j = 1:Ny+1
+        sf_temp.x(j,i) = sf_temp.x(j,i) + U * Y_n(i,j);
+    end
+end
+[F,c] = contour(X_n./(char_L),Y_n./(char_L),(sf_temp.x'),25);
+c.LineWidth = 2;
 hold on
-plot(xi_plot./(char_L),eta_plot./(char_L),"r","LineWidth",2);
+plot(xi_plot./(char_L),eta_plot./(char_L),"r","LineWidth",4);
 hold off
 pbaspect([1 (y_range(2)-y_range(1))/(x_range(2)-x_range(1)) 1])
-title(strcat('Streamlines for a Closed Body of characteristic length = '...
-    ,num2str(char_L),' in a flow of uniform velocity of U = ',num2str(U)));
+title(strcat('Streamlines around a cylinder of diameter ='...
+    ,{' '},num2str(2*char_L),{' '},'in a flow of uniform velocity of U =',{' '},num2str(U)));
 xlabel("X/L")
 ylabel("Y/L")
 f1.WindowState = 'fullscreen';
