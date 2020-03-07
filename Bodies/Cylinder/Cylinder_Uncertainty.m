@@ -1,6 +1,6 @@
 %% Immersed Boundary Projection Method
 %
-% Code written by Jay Mehta (July 2019).
+% Code written by Jay Mehta (March 2020).
 % 
 % This code was initially developed as a part of a Numerical Methods for
 % Incompressible Flows class (MECH&AE 250H) at UCLA.
@@ -19,12 +19,12 @@
 %% Clear Everything
 clear all
 clc
-rmpath('../../Source')
-rmpath('../../Source/dst_idst')
+rmpath('Source')
+rmpath('Source/dst_idst')
 
 %% Add Paths
-addpath('../../Source')
-addpath('../../Source/dst_idst')
+addpath('Source')
+addpath('Source/dst_idst')
 
 %% Set up the problem domain and the problem object
 
@@ -34,13 +34,13 @@ params = flow_parameters_init;
 domain = domain_parameters_init;
 
 % Domain
-Nx = 128;
-Ny = 64;
+Nx = 32;
+Ny = 32;
 domain.Nx = Nx;
 domain.Ny = Ny;
 
-x_range = [-120e-3 120e-3];
-y_range = [-60e-3 60e-3];
+x_range = [-2.5 2.5];
+y_range = [-2.5 2.5];
 domain.x_range = x_range;
 domain.y_range = y_range;
 
@@ -71,82 +71,27 @@ g_hat = L_inv(domain,"node");
 
 %% Setting up the Object
 
-% Line 1
-[xi1,eta1,~,~] = Line_Builder(params,-20e-3,-20e-3,-12.7e-3 + 1.12*dx,12.7e-3 - 1.12*dx);
-xi1 = xi1(1:end);
-eta1 = eta1(1:end);
+R = 0.5;
+params.char_L = R;
+char_L = R;
 
-% Line 2
-[xi2,eta2,~,~] = Line_Builder(params,-20e-3,-5e-3*sqrt(5),12.7e-3,12.7e-3);
-xi2 = xi2(1:end-1);
-eta2 = eta2(1:end-1);
-
-% % Line 3
-% [xi3,eta3,~,~] = Line_Builder(params,20e-3,20e-3,12.7e-3 - 1.12*dx,-12.7e-3 + 1.12*dx);
-% xi3 = xi3(1:end);
-% eta3 = eta3(1:end);
-
-% Dimple Line 3
-R = 15e-3;
 xc = 0;
-yc = 10e-3+12.7e-3;
+yc = 0;
+body_function = @(x,y) (x-xc)^2 + (y-yc)^2 - (R)^2;
 
-N_theta = floor(2*acos((yc-12.7e-3)/R)*R/dx);
-d_theta = 2*acos((yc-12.7e-3)/R)/N_theta;
+N_theta = floor(2*pi*R/dx);
+d_theta = 2*pi/N_theta;
 
-theta_range = 1.5*pi-acos(abs((yc-12.7e-3))/R):d_theta:1.5*pi + acos((yc-12.7e-3)/R);
+theta_range = 0:d_theta:2*pi-d_theta;
 
-xi3 = zeros(length(theta_range),1);
-eta3 = zeros(length(theta_range),1);
+xi = zeros(length(theta_range),1);
+eta = zeros(length(theta_range),1);
 
 for i = 1:length(theta_range)
-    xi3(i) = xc + R*cos(theta_range(i));
-    eta3(i) = yc + R*sin(theta_range(i));
+    xi(i) = xc + R*cos(theta_range(i));
+    eta(i) = yc + R*sin(theta_range(i));
 end
 
-% Line 4
-[xi4,eta4,~,~] = Line_Builder(params,5e-3*sqrt(5),20e-3,12.7e-3,12.7e-3);
-xi4 = xi4(2:end);
-eta4 = eta4(2:end);
-
-% Line 5
-[xi5,eta5,~,~] = Line_Builder(params,20e-3,20e-3,12.7e-3 - 1.12 * dx,-12.7e-3 + 1.12 * dx);
-xi5 = xi5(1:end);
-eta5 = eta5(1:end);
-
-% Line 6
-[xi6,eta6,~,~] = Line_Builder(params,20e-3,5e-3*sqrt(5),-12.7e-3,-12.7e-3);
-xi6 = xi6(1:end-1);
-eta6 = eta6(1:end-1);
-
-% Line 7
-R = 15e-3;
-xc = 0;
-yc = -10e-3-12.7e-3;
-
-N_theta = floor(2*acos(abs((yc+12.7e-3))/R)*R/dx);
-d_theta = 2*acos(abs((yc+12.7e-3))/R)/N_theta;
-
-theta_range = 0.5*pi-acos(abs((yc+12.7e-3))/R):d_theta:0.5*pi + acos(abs((yc+12.7e-3))/R);
-
-xi7 = zeros(length(theta_range),1);
-eta7 = zeros(length(theta_range),1);
-
-for i = 1:length(theta_range)
-    xi7(i) = xc + R*cos(theta_range(i));
-    eta7(i) = yc + R*sin(theta_range(i));
-end
-
-% Line 8
-[xi8,eta8,~,~] = Line_Builder(params,-5e-3*sqrt(5),-20e-3,-12.7e-3,-12.7e-3);
-xi8 = xi8(2:end);
-eta8 = eta8(2:end);
-
-char_L = 10*sqrt(5) * 1e-3;
-params.char_L = char_L;
-
-xi = [xi1;xi2;xi3;xi4;xi5;xi6;xi7;xi8];
-eta = [eta1;eta2;eta3;eta4;eta5;eta6;eta7;eta8];
 
 %% Forming the A matrix for PCG. Load it from the side bar
 
@@ -162,40 +107,48 @@ AT = MatrixA_Generator(params,domain,xi,eta,"temp");
 % discretization, and then use the Block LU Decomposition. This will allow
 % us to use the delta formulation.
 
+% We also include the idea of uncertainty in this work. The current work
+% refers to the problem described in UQ notes provided by Prof. Gianluca 
+% Iaccarino (Stanford).
+
+zeta1 = unifrnd(-1,1);
+zeta2 = unifrnd(-1,1);
+zeta3 = unifrnd(-1,1);
 U = 1;
 V = 0;
 params.U = U;
 
-Re = 40;
-nu = U * char_L / Re;
+Re = 100;
+nu = U * R / Re;
 params.nu = nu;
 
 Pr = 1;
 alpha = nu/Pr;
 params.alpha = alpha;
 
-Co = 0.5;
+Co = 1e-1;
 Fo = 5;
 Fo_t = Fo;
 
-dt = min([Fo * (dx)^2/nu,Co*(dx)/U,Fo_t * (dx)^2/alpha]);
+dt = min([Fo * dx^2/nu,Co*dx,Fo_t * dx^2/alpha]);
 params.dt = dt;
 
-Fo = nu * dt/(dx)^2;
-Fo_t = alpha * dt/(dx)^2;
-Co = U * dt/(dx);
+Fo = nu * dt/dx^2;
+Fo_t = alpha * dt/dx^2;
+Co = dt/dx;
 
 params.Fo = Fo;
 params.Fo_t = Fo_t;
 params.Co = Co;
 
-t_steady = max([(char_L)^2/nu,(char_L)^2/alpha]);
-tf = 10*t_steady;
+t_steady = (char_L)^2/nu;
+tf = t_steady;
 time_range = 0:dt:tf;
 
 %% Pre-Setup
 
 velocity = EdgeData(Nx,Ny); % Velocity Field
+velocity.x = 1 + 0.25*(zeta1*cos(2*pi*X_e_y) + zeta2*cos(10*pi*X_e_y));
 gamma = NodeData(Nx,Ny); % Vorticity
 Fx = zeros(length(xi),1);
 Fy = zeros(length(eta),1);
@@ -206,21 +159,15 @@ T = EdgeData(Nx,Ny);
 Tb = ones(length(xi),1);
 FTX = zeros(length(xi),1);
 FTY = zeros(length(eta),1);
-tol = 1e-1;
+tol = 1e-2;
 Drag = 0;
 Lift = 0;
 rhs1 = NodeData(Nx,Ny);
 rhs3 = EdgeData(Nx,Ny);
-conv_flow = [1];
-t = 1;
-time_data = dt:dt:t*dt;
-p = plot(time_data,conv_flow);
-
-p.XDataSource = 'time_data';
-p.YDataSource = 'conv_flow';
 
 %% Boundary Conditions on Gamma
 
+gamma = curl_2(velocity);
 gamma0 = gamma;
 gamma = apply_bc_sp(params,gamma,gamma0);
 T0 = T;
@@ -255,8 +202,11 @@ for t = 2
     
     % Forming the two rhs2's
     
-    rhs2_x = ub - U * ones(length(xi),1) + ub2;
-    rhs2_y = vb - V * ones(length(eta),1) + vb2;
+%     rhs2_x = ub - U * ones(length(xi),1) + ub2;
+%     rhs2_y = vb - V * ones(length(eta),1) + vb2;
+%     [ub3,vb3] = E_operation(params,domain,xi,eta,velocity);
+    rhs2_x = ub + ub2;
+    rhs2_y = vb + vb2;
     
     rhs2 = [rhs2_x;rhs2_y];
     % Now obtain the delta_f in the two directions by pcg
@@ -288,8 +238,9 @@ for t = 2
     gamma.x = -gamma.x;
     
     velocity = curl_2(sf);
-    velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
-    velocity.y = velocity.y;
+    add_velocity = H_operation(params,domain,"edge",xi,eta,ub3,vb3);
+    velocity.x = velocity.x;% + add_velocity.x; % + U * ones(Nx+1,Ny+2);
+    velocity.y = velocity.y;% + add_velocity.y;
     
     % Calculate Lift and Drag
     
@@ -298,62 +249,57 @@ for t = 2
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-%     % Solving for the temperature field
-%     
-%     % Set R3
-%     T0 = T;
-%     diff_T = laplacian_2(T);
-%     nlt = non_linear_temp(params,velocity0,T);
-%     
-%     fT = H_operation(params,domain,"edge",xi,eta,FTX,FTY);
-%     
-%     rhs3 = CellData(Nx,Ny);
-%     rhs3.x = Fo_t * diff_T.x - dt .* nlt.x + dt * fT.x;
-%     rhs3.y = Fo_t * diff_T.y - dt .* nlt.y + dt * fT.y;
-%     
-%     % Solve the diffusion problem
-%     
-%     delta_T_star = rhs3;
-%     
-%     % Now set up R4.
-%     
-%     temp = EdgeData(Nx,Ny);
-%     temp.x = T.x + delta_T_star.x;
-%     temp.y = T.y + delta_T_star.y;
-%     [Tb_x2,Tb_y2] = E_operation(params,domain,xi,eta,temp);
-%     
-%     rhs4 = Tb - Tb_x2;
-%     
-%     delta_FT = pcg(AT,rhs4,1e-1);
-%     delta_FTX = delta_FT./dt;
-%     delta_FTY = zeros(length(eta),1);
-%     
-%     T_c = H_operation(params,domain,"edge",xi,eta,delta_FTX,delta_FTY);
-%     delta_T_x = delta_T_star.x + dt * T_c.x;
-%     delta_T_y = delta_T_star.y + dt * T_c.y;
-%     
-%     T.x = T.x + delta_T_x;
-%     T.y = T.y + delta_T_y;
-%     T = apply_bc_temp(params,T,T0);
-%     FTX = FTX + delta_FTX;
-%     
-%     % Checking the residual for each step and breaking the loop if convergence has reached
+    % Solving for the temperature field
     
-    conv_flow(t) = 1/sqrt(Nx*Ny) * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
-%     conv_therm = 1/Nx * norm(delta_T_x(2:Nx+1,2:Ny+1))/dt / norm(T.x(2:Nx+1,2:Ny+1))/dt;
-    time_data = dt:dt:t*dt;
-    refreshdata
-    drawnow
-    if conv_flow <= tol % && conv_therm <= tol
+    % Set R3
+    T0 = T;
+    diff_T = laplacian_2(T);
+    nlt = non_linear_temp(params,velocity0,T);
+    
+    fT = H_operation(params,domain,"edge",xi,eta,FTX,FTY);
+    
+    rhs3 = CellData(Nx,Ny);
+    rhs3.x = Fo_t * diff_T.x - dt * nlt.x + dt * fT.x;
+    rhs3.y = Fo_t * diff_T.y - dt * nlt.y + dt * fT.y;
+    
+    % Solve the diffusion problem
+    
+    delta_T_star = rhs3;
+    
+    % Now set up R4.
+    
+    temp = EdgeData(Nx,Ny);
+    temp.x = T.x + delta_T_star.x;
+    temp.y = T.y + delta_T_star.y;
+    [Tb_x2,Tb_y2] = E_operation(params,domain,xi,eta,temp);
+    
+    rhs4 = Tb - Tb_x2;
+    
+    delta_FT = pcg(AT,rhs4,1e-1);
+    delta_FTX = delta_FT./dt;
+    delta_FTY = zeros(length(eta),1);
+    
+    T_c = H_operation(params,domain,"edge",xi,eta,delta_FTX,delta_FTY);
+    delta_T_x = delta_T_star.x + dt * T_c.x;
+    delta_T_y = delta_T_star.y + dt * T_c.y;
+    
+    T.x = T.x + delta_T_x;
+    T.y = T.y + delta_T_y;
+    T = apply_bc_temp(params,T,T0);
+    FTX = FTX + delta_FTX;
+    
+    % Checking the residual for each step and breaking the loop if convergence has reached
+    
+    conv_flow = 1/Nx * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
+    conv_therm = 1/Nx * norm(delta_T_x(2:Nx+1,2:Ny+1))/dt / norm(T.x(2:Nx+1,2:Ny+1))/dt;
+    if conv_flow <= tol && conv_therm <= tol
         break
     end
 end
 
 %% CN-AB2 Initial
-start_t = t;
-end_t = t + 200;
 
-for t = start_t:end_t
+for t = 3:100
     
     % Set up R1
     gamma0 = gamma;
@@ -370,7 +316,7 @@ for t = start_t:end_t
     
     % Solve the diffusion problem
     
-    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(params,time_range(1),rhs1,gamma,gamma0);
+    [~,delta_gamma_star] = diffuse_dirichlet_cn_node_xy(params,time_range(t),rhs1,gamma,gamma0);
     
     % Now set up R2. Note here that R2 will have two components.
     
@@ -378,8 +324,11 @@ for t = start_t:end_t
     temp.x = gamma.x + delta_gamma_star.x;
     [ub2,vb2] = ECL_inv(params,domain,g_hat,xi,eta,temp);
     
-    rhs2_x = ub - U * ones(length(xi),1) + ub2;
-    rhs2_y = vb - V * ones(length(eta),1) + vb2;
+%     rhs2_x = ub - U * ones(length(xi),1) + ub2;
+%     rhs2_y = vb - V * ones(length(eta),1) + vb2;
+%     [ub3,vb3] = E_operation(params,domain,xi,eta,velocity);
+    rhs2_x = ub + ub2;
+    rhs2_y = vb + vb2;
     
     rhs2 = [rhs2_x;rhs2_y];
     % Now obtain the delta_f in the two directions by pcg
@@ -410,8 +359,9 @@ for t = start_t:end_t
     gamma.x = -gamma.x;
     
     velocity = curl_2(sf);
-    velocity.x = velocity.x + U * ones(Nx+1,Ny+2);
-    velocity.y = velocity.y;
+    add_velocity = H_operation(params,domain,"edge",xi,eta,ub3,vb3);
+    velocity.x = velocity.x;% + add_velocity.x; %+ U * ones(Nx+1,Ny+2);
+    velocity.y = velocity.y;% + add_velocity.y;
     
     % Calculate Lift and Drag
     
@@ -420,79 +370,21 @@ for t = start_t:end_t
     Drag(t) = -sum(sum(Hq.x))*dx^2;
     Lift(t) = sum(sum(Hq.y))*dx^2;
     
-%     % Solving for the temperature field
-%     
-%     % Set R3
-%     rhs3.x = 0.5 * dt .* nlt.x;
-%     diff_T = laplacian_2(T);
-%     nlt = non_linear_temp(params,velocity0,T);
-%     
-%     fT = H_operation(params,domain,"edge",xi,eta,FTX,FTY);
-%     
-%     rhs3.x = rhs3.x + Fo_t * diff_T.x - 1.5 * dt .* nlt.x + dt * fT.x;
-%     rhs3.y = rhs3.y + Fo_t * diff_T.y - 1.5 * dt .* nlt.y + dt * fT.y;
-%     
-%     % Solve the diffusion problem
-%     
-%     [~,delta_T_star] = diffuse_dirichlet_cn_cell_xy(params,time_range(t),rhs3,T);
-%     
-%     % Now set up R4.
-%     
-%     temp = EdgeData(Nx,Ny);
-%     temp.x = T.x + delta_T_star.x;
-%     temp.y = T.y + delta_T_star.y;
-%     [Tb_x2,Tb_y2] = E_operation(params,domain,xi,eta,temp);
-%     
-%     rhs4 = Tb - Tb_x2;
-%     
-%     delta_FT = pcg(AT,rhs4,1e-1,100);
-%     delta_FTX = delta_FT./dt;
-%     delta_FTY = zeros(length(eta),1);
-%     
-%     T_c = H_operation(params,domain,"edge",xi,eta,delta_FTX,delta_FTY);
-%     delta_T_x = delta_T_star.x + dt * T_c.x;
-%     delta_T_y = delta_T_star.y + dt * T_c.y;
-%     
-%     T.x = T.x + delta_T_x;
-%     T.y = T.y + delta_T_y;
-%     T = apply_bc_temp(params,T);
-%     FTX = FTX + delta_FTX;
-%     FTY = FTY + delta_FTY;
-%     
-%     % Checking the residual for each step and breaking the loop if convergence has reached
-    
-%     conv_flow(t) = 1/sqrt(Nx*Ny) * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
-%     conv_therm = 1/Nx * norm(delta_T_x(2:Nx,2:Ny+1))/dt / norm(T.x(2:Nx,2:Ny+1))/dt;
-%     time_data = dt:dt:t*dt;
-%     refreshdata
-%     drawnow
-    
-    conv_flow = 1/sqrt(Nx*Ny) * norm(velocity.x(2:Nx,2:Ny+1) - velocity0.x(2:Nx,2:Ny+1))/dt / norm(velocity0.x(2:Nx,2:Ny+1))/dt;
-    if conv_flow <= tol %&& conv_therm <= tol
-        break
-    end
-end
-
-
-%% Now Activate the Thermal Convection and Diffusion
-
-for t = 2
     % Solving for the temperature field
     
     % Set R3
-    T0 = T;
+    rhs3.x = 0.5 * dt * nlt.x;
     diff_T = laplacian_2(T);
     nlt = non_linear_temp(params,velocity0,T);
     
     fT = H_operation(params,domain,"edge",xi,eta,FTX,FTY);
     
-    rhs3 = CellData(Nx,Ny);
-    rhs3.x = Fo_t * diff_T.x - dt .* nlt.x + dt * fT.x;
-    rhs3.y = Fo_t * diff_T.y - dt .* nlt.y + dt * fT.y;
+    rhs3.x = rhs3.x + Fo_t * diff_T.x - 1.5 * dt * nlt.x + dt * fT.x;
+    rhs3.y = rhs3.y + Fo_t * diff_T.y - 1.5 * dt * nlt.y + dt * fT.y;
     
     % Solve the diffusion problem
     
-    delta_T_star = rhs3;
+    [~,delta_T_star] = diffuse_dirichlet_cn_cell_xy(params,time_range(t),rhs3,T);
     
     % Now set up R4.
     
@@ -513,73 +405,39 @@ for t = 2
     
     T.x = T.x + delta_T_x;
     T.y = T.y + delta_T_y;
-    T = apply_bc_temp(params,T,T0);
-    FTX = FTX + delta_FTX;
-    
-    % Checking the residual for each step and breaking the loop if convergence has reached
-    
-    conv_therm = 1/Nx * norm(delta_T_x(2:Nx+1,2:Ny+1))/dt / norm(T.x(2:Nx+1,2:Ny+1))/dt;
-end
-
-%% Continue Thermal Transport
-
-for t = 3:200
-    % Solving for the temperature field
-    
-    % Set R3
-    rhs3.x = 0.5 * dt .* nlt.x;
-    diff_T = laplacian_2(T);
-    nlt = non_linear_temp(params,velocity0,T);
-    
-    fT = H_operation(params,domain,"edge",xi,eta,FTX,FTY);
-    
-    rhs3.x = rhs3.x + Fo_t * diff_T.x - 1.5 * dt .* nlt.x + dt * fT.x;
-    rhs3.y = rhs3.y + Fo_t * diff_T.y - 1.5 * dt .* nlt.y + dt * fT.y;
-    
-    % Solve the diffusion problem
-    
-    [~,delta_T_star] = diffuse_dirichlet_cn_cell_xy(params,time_range(t),rhs3,T);
-    
-    % Now set up R4.
-    
-    temp = EdgeData(Nx,Ny);
-    temp.x = T.x + delta_T_star.x;
-    temp.y = T.y + delta_T_star.y;
-    [Tb_x2,Tb_y2] = E_operation(params,domain,xi,eta,temp);
-    
-    rhs4 = Tb - Tb_x2;
-    
-    delta_FT = pcg(AT,rhs4,1e-1,100);
-    delta_FTX = delta_FT./dt;
-    delta_FTY = zeros(length(eta),1);
-    
-    T_c = H_operation(params,domain,"edge",xi,eta,delta_FTX,delta_FTY);
-    delta_T_x = delta_T_star.x + dt * T_c.x;
-    delta_T_y = delta_T_star.y + dt * T_c.y;
-    
-    T.x = T.x + delta_T_x;
-    T.y = T.y + delta_T_y;
     T = apply_bc_temp(params,T);
     FTX = FTX + delta_FTX;
     FTY = FTY + delta_FTY;
     
     % Checking the residual for each step and breaking the loop if convergence has reached
-    conv_therm = 1/Nx * norm(delta_T_x(2:Nx,2:Ny+1))/dt / norm(T.x(2:Nx,2:Ny+1))/dt;
+    
+    conv_flow = 1/Nx * norm(delta_gamma(2:Nx,2:Ny))/dt / norm(gamma.x(2:Nx,2:Ny))/dt;
+    conv_therm = 1/Nx * norm(delta_T_x(2:Nx+1,2:Ny+1))/dt / norm(T.x(2:Nx+1,2:Ny+1))/dt;
+    
+    if conv_flow <= tol && conv_therm <= tol
+        break
+    end
 end
-
 
 %% Streamlines
 
 xi_plot = [xi;xi(1)];
 eta_plot = [eta;eta(1)];
 f1 = figure;
-contour(X_n./(char_L),Y_n./(char_L),(sf.x'))
+sf_temp = sf;
+for i = 1:Nx+1
+    for j = 1:Ny+1
+        sf_temp.x(j,i) = sf_temp.x(j,i) + U * Y_n(i,j);
+    end
+end
+[F,c] = contour(X_n./(char_L),Y_n./(char_L),(sf_temp.x'),25);
+c.LineWidth = 2;
 hold on
-plot(xi_plot./(char_L),eta_plot./(char_L),"r","LineWidth",2);
+plot(xi_plot./(char_L),eta_plot./(char_L),"r","LineWidth",4);
 hold off
 pbaspect([1 (y_range(2)-y_range(1))/(x_range(2)-x_range(1)) 1])
-title(strcat('Streamlines for a Closed Body of characteristic length = '...
-    ,num2str(char_L),' in a flow of uniform velocity of U = ',num2str(U)));
+title(strcat('Streamlines around a cylinder of diameter ='...
+    ,{' '},num2str(2*char_L),{' '},'in a flow of uniform velocity of U =',{' '},num2str(U)));
 xlabel("X/L")
 ylabel("Y/L")
 f1.WindowState = 'fullscreen';
@@ -616,8 +474,8 @@ title(strcat('Velocity for a Closed Body of characteristic length = '...
     ,num2str(char_L),' in a flow of uniform velocity of U = ',num2str(U)));
 xlabel("X/L")
 ylabel("Y/L")
-axis tight
 f4.WindowState = 'fullscreen';
+axis tight
 
 %% Temperature Plot
 
@@ -636,9 +494,9 @@ xlabel("X/L")
 ylabel("Y/L")
 f3.WindowState = 'fullscreen';
 
-%% Video Generator
-
-video = video_generator(params,domain,"von-karman street",xi,eta,sf_log);
+% %% Video Generator
+% 
+% video = video_generator(params,domain,"von-karman street",xi,eta,sf_log);
 
 %% Shedding Frequency
 
@@ -697,17 +555,4 @@ for i = 1:max_req_ev
     title(strcat('Enstrophy (Mode ',num2str(i),') for a Cylinder of D = ',num2str(2*R),' in a flow of uniform velocity of U = ',num2str(U)));
     xlabel("X/D")
     ylabel("Y/D")
-end
-
-%% Body Function
-
-function out = body_function(x,y)
-    if (x>=-20e-3 && x<= 20e-3) && (y>=-12.7e-3 && y<=12.7e-3) % Blanket x and y -condition
-        out = -1;
-        if (x-0)^2 + (y-22.7e-3)^2 - (15e-3)^2 < 0 || (x-0)^2 + (y+22.7e-3)^2 - (15e-3)^2 < 0
-            out = 1;
-        end
-    else
-        out = 1;
-    end
 end
