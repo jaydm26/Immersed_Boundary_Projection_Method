@@ -28,15 +28,6 @@ function op = grad(ip)
                     op.y(i,j) = ip.x(i,j+1) - ip.x(i,j);
                 end
             end
-        case "edge"
-            op = EdgeData(Nx,Ny);
-            % op.x will yield the derivatives of the x direction field.
-            % op.x.x will yield the derivative of the x direction field
-            % with respect to x. op.x.y will yielf the derivative of the x
-            % direction field with respect to y. So on and so forth.
-            
-            op_temp = EdgeData(Nx,Ny);
-            
         otherwise
             error("Check Data Type. Data Type can only be cell")
     end
