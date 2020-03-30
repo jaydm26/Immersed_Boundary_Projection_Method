@@ -25,6 +25,7 @@ rmpath('Source/dst_idst')
 %% Add Paths
 addpath('Source')
 addpath('Source/dst_idst')
+
 %% Set up the problem domain and the problem object
 
 % Set up the parameters that have to be passed
@@ -395,10 +396,14 @@ video = video_generator(params,domain,"streamlines",xi,eta,sf_log);
 % Find the Largest time scale from the Lift plot. Use the Data between two
 % peaks. Load that data as gamma_log_2.
 
+gamma_log_2 = gamma_log(135:617,:,:);
+
 gam = NodeData(Nx,Ny);
 stacked_gamma = zeros(((Nx+1)*(Ny+1)),length(gamma_log_2));
 
-for i = 1:length(gamma_log_2)
+size_gl2 = size(gamma_log_2);
+
+for i = 1:size_gl2(1)
     gam.x(:,:) = gamma_log_2(i,:,:);
     stacked_gamma(:,i) = stacker(gam);
 end
@@ -426,7 +431,7 @@ for i = 1:length(sum_ev)
 end
 
 for i = 1:max_req_ev
-    p_gam = unstacker(ef(:,end-i+1),"node");
+    p_gam = unstacker(domain,ef(:,end-i+1),"node");
     figure
     contourf(X_n./(2*R),Y_n./(2*R),(p_gam.x'))
     hold on
@@ -437,4 +442,9 @@ for i = 1:max_req_ev
     xlabel("X/D")
     ylabel("Y/D")
 end
-    
+   
+%% Using the POD to recreate the flow field.
+
+% Using the assumption that w(t,x) = sum(a_i(t).phi_i(x)), we can form a
+% reduced order model (ROM). This assumption is fed into the vorticity 
+% transport equation to obtain the dynamic equation for the ROM.

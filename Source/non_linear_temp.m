@@ -23,7 +23,7 @@ function nltt = non_linear_temp(params,velocity,T)
     dx = params.dx;
     dy = params.dy;
     
-   % d(vT) = v.dT + T.dv
+    % d(vT) = v.dT + T.dv
     % d(uT) = u.dT + T.du. They are calculated differently to maintain
     % conservativeness of the equations in discrete space.
     
