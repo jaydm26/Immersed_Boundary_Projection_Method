@@ -331,9 +331,9 @@ for t = 3:100
     
     % Update gamma and the forcing function
     
-    gamma.x = gamma.x + delta_gamma;
+    gamma.x = gamma.x + delta_gamma; 
     gamma = apply_bc_sp(params,gamma,gamma0);
-    Fx = Fx + delta_f_x;
+    Fx = Fx + delta_f_x; % Momentum Forcing
     Fy = Fy + delta_f_y;
     
     % Obtain the streamfunction and velocity
@@ -388,7 +388,7 @@ for t = 3:100
     T.x = T.x + delta_T_x;
     T.y = T.y + delta_T_y;
     T = apply_bc_temp(params,T);
-    FTX = FTX + delta_FTX;
+    FTX = FTX + delta_FTX; % Temperature Forcing
     FTY = FTY + delta_FTY;
     
     % Checking the residual for each step and breaking the loop if convergence has reached

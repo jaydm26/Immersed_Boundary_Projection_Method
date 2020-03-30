@@ -458,7 +458,7 @@ f1.WindowState = 'fullscreen';
 xi1 = [xi;xi(1)];
 eta1 = [eta;eta(1)];
 f1 = figure;
-contour(X_n./(2*R),Y_n./(2*R),(gamma.x'))
+contourf(X_n./(2*R),Y_n./(2*R),(gamma.x'))
 hold on
 plot(xi1./(2*R),eta1./(2*R),"LineWidth",2);
 hold off
@@ -530,7 +530,7 @@ ev = ev';
 sum_ev = sort(cumsum(sort(ev,"descend"))/sum(ev),"descend");
 
 for i = 1:length(sum_ev)
-    if sum_ev(end-i+1) >= 0.99
+    if sum_ev(end-i+1) >= 0.9
         max_req_ev = i;
         break
     end
@@ -539,7 +539,7 @@ end
 xi1 = [xi;xi(1)];
 eta1 = [eta;eta(1)];
 
-for i = 1:max_req_ev
+for i = 1:max_req_ev-7
     p_gam = unstacker(domain,ef(:,end-i+1),"node");
     figure
     contourf(X_n./(2*R),Y_n./(2*R),(p_gam.x'))
