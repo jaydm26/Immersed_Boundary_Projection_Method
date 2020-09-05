@@ -120,9 +120,9 @@ alpha = nu/Pr;
 
 Co = 1e-1;
 Fo = 5;
-Fo_t = Fo;
+Fo_t = -Fo;
 
-dt = min([Fo * dx^2/nu,Co*dx,Fo_t * dx^2/alpha]);
+dt = min([Fo * dx^2/nu,Co*dx,abs(Fo_t * dx^2/alpha)]);
 params.dt = dt;
 
 Fo = nu * dt/dx^2;
@@ -205,6 +205,7 @@ for t = 2
     delta_f_x = delta_f(1:length(xi));
     delta_f_y = delta_f(length(xi)+1:end);
     
+    
     % Now we correct for the vorticity to ensure we have no slip on the body
     
     gamma_c = CTH(params,domain,xi,eta,delta_f_x,delta_f_y);
@@ -285,7 +286,7 @@ end
 
 %% CN-AB2 Initial
 
-for t = 3:100
+for t = 2049:4096
     
     % Set up R1
     gamma0 = gamma;
@@ -323,6 +324,9 @@ for t = 3:100
     
     delta_f_x = delta_f(1:length(xi));
     delta_f_y = delta_f(length(xi)+1:end);
+    
+    delta_f_x(3) = delta_f_x(3) + 100;
+    delta_f_y(3) = delta_f_y(3) + 100;
     
     % Now we correct for the vorticity to ensure we have no slip on the body
     

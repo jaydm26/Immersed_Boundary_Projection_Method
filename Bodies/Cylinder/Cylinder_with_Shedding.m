@@ -106,7 +106,7 @@ U = 1;
 V = 0;
 params.U = U;
 
-Re = 100;
+Re = 100; % Based on Radius. On Diameter, it will be twice.
 nu = U * R / Re;
 params.nu = nu;
 
@@ -339,7 +339,7 @@ end
 
 %% CN-AB2 Shedding
 
-for t = 501:2000
+for t = 51:150
     
     % Set up R1
     gamma0 = gamma;
@@ -378,8 +378,8 @@ for t = 501:2000
     delta_f_y = delta_f(length(xi)+1:end);
     
     % Adding an unstable component
-    delta_f_x(3) = delta_f_x(3) + 100;
-    delta_f_y(3) = delta_f_y(3) + 100;
+    delta_f_x(3) = delta_f_x(3);
+    delta_f_y(3) = delta_f_y(3);
     
     % Now we correct for the vorticity to ensure we have no slip on the body
     
